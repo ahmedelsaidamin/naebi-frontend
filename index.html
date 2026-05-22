@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نائبي الذكي — Personal AI Representative</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #0a0a0f;
+    --bg-elevated: #12121a;
+    --bg-card: rgba(255, 255, 255, 0.03);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --text-primary: #f5f5f7;
+    --text-secondary: rgba(245, 245, 247, 0.65);
+    --text-tertiary: rgba(245, 245, 247, 0.4);
+    --accent-1: #a78bfa;
+    --accent-2: #60a5fa;
+    --accent-3: #f472b6;
+    --accent-glow: rgba(167, 139, 250, 0.35);
+    --success: #4ade80;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --gradient-primary: linear-gradient(135deg, #a78bfa 0%, #60a5fa 50%, #f472b6 100%);
+    --gradient-mesh: radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.15) 0px, transparent 50%),
+                     radial-gradient(at 97% 21%, hsla(265, 96%, 75%, 0.18) 0px, transparent 50%),
+                     radial-gradient(at 52% 99%, hsla(320, 91%, 75%, 0.12) 0px, transparent 50%),
+                     radial-gradient(at 10% 29%, hsla(256, 96%, 67%, 0.15) 0px, transparent 50%);
+    --font-display: 'Instrument Serif', serif;
+    --font-body: 'Tajawal', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: var(--gradient-mesh);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== NAV ===== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 32px;
+    backdrop-filter: blur(20px);
+    background: rgba(10, 10, 15, 0.7);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-display);
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .logo-mark {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: var(--gradient-primary);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 20px var(--accent-glow);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+    50% { box-shadow: 0 0 35px var(--accent-glow); }
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 8px 24px -8px var(--accent-glow);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 32px -8px var(--accent-glow);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-ghost {
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--accent-1);
+    background: rgba(255,255,255,0.06);
+  }
+
+  .btn-danger {
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+  }
+
+  .btn-danger:hover {
+    background: rgba(248, 113, 113, 0.2);
+  }
+
+  /* ===== PAGE STRUCTURE ===== */
+  .page {
+    display: none;
+    min-height: 100vh;
+    padding-top: 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .page.active { display: block; }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ===== LANDING (Hero) ===== */
+  .hero {
+    padding: 80px 24px 60px;
+    text-align: center;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--success);
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(44px, 7vw, 92px);
+    line-height: 1;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+  }
+
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-style: italic;
+  }
+
+  .hero-subtitle {
+    font-size: 19px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 36px;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 60px;
+  }
+
+  /* Orb */
+  .orb-section {
+    max-width: 600px;
+    margin: 60px auto 80px;
+    text-align: center;
+  }
+
+  .orb {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    margin: 0 auto;
+    position: relative;
+    box-shadow: 0 0 60px var(--accent-glow), inset 0 0 40px rgba(255,255,255,0.2);
+    animation: orb-float 4s ease-in-out infinite;
+  }
+
+  .orb::before, .orb::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(167, 139, 250, 0.3);
+  }
+
+  .orb::before { inset: -16px; animation: ring-pulse 3s ease-in-out infinite; }
+  .orb::after { inset: -32px; animation: ring-pulse 3s ease-in-out infinite 1s; }
+
+  @keyframes orb-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes ring-pulse {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.15); }
+  }
+
+  /* ===== FEATURES GRID ===== */
+  .features-section {
+    padding: 80px 24px;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 5vw, 56px);
+    text-align: center;
+    margin-bottom: 16px;
+    line-height: 1;
+  }
+
+  .section-description {
+    text-align: center;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 60px;
+    font-size: 17px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.3s ease;
+  }
+
+  .feature-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 18px;
+  }
+
+  .feature-icon svg { width: 22px; height: 22px; color: white; }
+
+  .feature-card h3 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+
+  .feature-card p {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  /* ===== AUTH FORMS ===== */
+  .auth-container {
+    max-width: 440px;
+    margin: 60px auto;
+    padding: 40px 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+  }
+
+  .auth-container h2 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .auth-container p.subtitle {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: var(--accent-1);
+  }
+
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .auth-switch {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .auth-switch a {
+    color: var(--accent-1);
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .alert-error {
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+  }
+
+  .alert-success {
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid var(--success);
+    color: var(--success);
+  }
+
+  .alert-warning {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid var(--warning);
+    color: var(--warning);
+  }
+
+  /* ===== DASHBOARD ===== */
+  .dashboard {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: calc(100vh - 80px);
+  }
+
+  .sidebar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 20px;
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+  }
+
+  .sidebar-section {
+    margin-bottom: 24px;
+  }
+
+  .sidebar-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-item:hover {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-primary);
+  }
+
+  .sidebar-item.active {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(96, 165, 250, 0.08));
+    color: var(--accent-1);
+    border: 1px solid rgba(167, 139, 250, 0.2);
+  }
+
+  .sidebar-item svg {
+    width: 18px; height: 18px;
+    flex-shrink: 0;
+  }
+
+  .main-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 32px;
+    min-height: calc(100vh - 130px);
+  }
+
+  /* Status badges */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+  }
+
+  .status-badge.active {
+    background: rgba(74, 222, 128, 0.15);
+    color: var(--success);
+    border: 1px solid var(--success);
+  }
+
+  .status-badge.inactive {
+    background: rgba(248, 113, 113, 0.15);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 36px;
+    line-height: 1;
+    font-style: italic;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .stat-progress {
+    height: 4px;
+    background: var(--border-subtle);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+
+  .stat-progress-bar {
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* Section heading */
+  .section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .section-heading h2 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 400;
+  }
+
+  /* List items */
+  .item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .list-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .list-item-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .list-item-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .list-item-meta {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    word-wrap: break-word;
+  }
+
+  .list-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.2s ease;
+  }
+
+  .icon-btn:hover {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-primary);
+  }
+
+  .icon-btn.danger:hover {
+    background: rgba(248, 113, 113, 0.1);
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-tertiary);
+  }
+
+  .empty-state svg {
+    width: 48px; height: 48px;
+    margin: 0 auto 16px;
+    opacity: 0.3;
+  }
+
+  /* ===== CHAT INTERFACE ===== */
+  .chat-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+    height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-window {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+  }
+
+  .chat-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .chat-avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: grid;
+    place-items: center;
+    position: relative;
+    color: white;
+    font-weight: 700;
+  }
+
+  .chat-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 12px; height: 12px;
+    background: var(--success);
+    border: 2px solid var(--bg-base);
+    border-radius: 50%;
+  }
+
+  .chat-info h5 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 400;
+  }
+
+  .chat-info p {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .message {
+    display: flex;
+    gap: 12px;
+    max-width: 80%;
+    animation: msg-in 0.3s ease-out;
+  }
+
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.from-user {
+    align-self: flex-start;
+    flex-direction: row-reverse;
+  }
+
+  .message.from-ai {
+    align-self: flex-end;
+  }
+
+  .msg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .from-user .msg-avatar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+  }
+
+  .from-ai .msg-avatar {
+    background: var(--gradient-primary);
+    color: white;
+  }
+
+  .msg-bubble {
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .from-user .msg-bubble {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .from-ai .msg-bubble {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(96, 165, 250, 0.08));
+    border: 1px solid rgba(167, 139, 250, 0.2);
+  }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+  }
+
+  .typing-indicator span {
+    width: 6px; height: 6px;
+    background: var(--accent-1);
+    border-radius: 50%;
+    animation: typing 1.4s ease-in-out infinite;
+  }
+
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  .chat-input-bar {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .chat-input-bar input {
+    flex: 1;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+  }
+
+  .chat-input-bar input:focus { border-color: var(--accent-1); }
+
+  .send-btn {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: var(--gradient-primary);
+    color: white;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: transform 0.2s ease;
+  }
+
+  .send-btn:hover { transform: translateY(-1px); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal h3 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  /* ===== UTILITIES ===== */
+  .loading {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--accent-1);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    nav { padding: 14px 16px; }
+    .dashboard { grid-template-columns: 1fr; padding: 16px; }
+    .sidebar { position: relative; top: 0; }
+    .main-content { padding: 20px; }
+    .auth-container { margin: 24px 16px; padding: 28px 20px; }
+    .hero { padding: 40px 16px 30px; }
+    .message { max-width: 90%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav>
+  <div class="logo" onclick="navigateTo('landing')">
+    <div class="logo-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L4 6V12C4 17 8 21 12 22C16 21 20 17 20 12V6L12 2Z" stroke="white" stroke-width="1.5" fill="rgba(255,255,255,0.2)"/>
+        <circle cx="12" cy="11" r="3" fill="white"/>
+      </svg>
+    </div>
+    <span>نائبي</span>
+  </div>
+
+  <div class="nav-right" id="navRight">
+    <!-- يتغير حسب حالة تسجيل الدخول -->
+  </div>
+</nav>
+
+<!-- ===== LANDING PAGE ===== -->
+<div class="page active" id="page-landing">
+  <section class="hero">
+    <div class="hero-badge">
+      <span>الإصدار v9 — بحث دلالي + أسئلة ذكية مقترحة</span>
+    </div>
+    <h1>
+      نائبك الذكي<br>
+      <span class="gradient-text">يتحدث بأسلوبك</span>
+    </h1>
+    <p class="hero-subtitle">
+      منصة ذكاء اصطناعي تُنشئ نسخة رقمية منك — تجيب على الأسئلة، تتفاعل مع جمهورك، وتمثلك بأمانة. بشخصيتك، وبموافقتك.
+    </p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" onclick="navigateTo('signup')">
+        أنشئ نائبك الآن
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <button class="btn btn-ghost" onclick="navigateTo('login')">
+        لدي حساب بالفعل
+      </button>
+    </div>
+
+    <div class="orb-section">
+      <div class="orb"></div>
+      <p style="margin-top: 32px; font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary);">
+        ◉ يستمع · يفهم · ويرد بأسلوبك<br>
+        Gemini 2.5 Flash · LlamaIndex RAG v8
+      </p>
+    </div>
+  </section>
+
+  <section class="features-section container">
+    <h2 class="section-title">كل ما تحتاجه لبناء <span class="gradient-text">نسخة رقمية</span> منك</h2>
+    <p class="section-description">من تدريب الشخصية إلى الإجابة الذكية، كل أداة مصممة بعناية.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <h3>محرك RAG ذكي</h3>
+        <p>نظام استرجاع متقدم يبحث في معرفتك الشخصية لإيجاد أدق إجابة لكل سؤال.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <h3>طبقة الثقة والأمان</h3>
+        <p>إقرار استخدام إلزامي، شخص موثوق احتياطي، وكلمات مرور مشفرة.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <h3>تعلم مستمر</h3>
+        <p>كل محادثة تجعل نائبك أذكى. راجع الردود وصحّح الأخطاء بسهولة.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <circle cx="9" cy="7" r="4"/>
+          </svg>
+        </div>
+        <h3>إدارة الزوار</h3>
+        <p>تحكم في من يستطيع التحدث مع نائبك ومستوى وصوله.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <h3>ملفات المعرفة</h3>
+        <p>ارفع PDF, DOCX, TXT, MD ودع نائبك يبحث فيها قبل الإجابة.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <h3>شخصية قابلة للتخصيص</h3>
+        <p>حدد أسلوب الكلام، الموضوعات الممنوعة، والحدود الواضحة لنائبك.</p>
+      </div>
+    </div>
+  </section>
+
+  <div style="text-align: center; padding: 80px 24px;">
+    <h2 class="section-title">جاهز للبدء؟</h2>
+    <p class="section-description">الإعداد لا يستغرق سوى دقائق. مجاناً تماماً.</p>
+    <button class="btn btn-primary" onclick="navigateTo('signup')" style="font-size: 16px; padding: 14px 32px;">
+      ابدأ مجاناً الآن
+    </button>
+  </div>
+</div>
+
+<!-- ===== SIGNUP PAGE ===== -->
+<div class="page" id="page-signup">
+  <div class="auth-container">
+    <h2>إنشاء حساب</h2>
+    <p class="subtitle">ابدأ رحلتك في بناء نائبك الذكي</p>
+
+    <div id="signupAlert"></div>
+
+    <div class="form-group">
+      <label>الاسم الظاهر</label>
+      <input type="text" id="signupDisplayName" placeholder="أحمد محمد">
+    </div>
+    <div class="form-group">
+      <label>اسم المستخدم</label>
+      <input type="text" id="signupUsername" placeholder="ahmed" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور (6 أحرف على الأقل)</label>
+      <input type="password" id="signupPassword" placeholder="••••••••" autocomplete="new-password">
+    </div>
+
+    <button class="btn btn-primary" id="signupBtn" onclick="handleSignup()" style="width: 100%; justify-content: center;">
+      إنشاء الحساب
+    </button>
+
+    <p class="auth-switch">
+      لديك حساب بالفعل؟ <a onclick="navigateTo('login')">تسجيل الدخول</a>
+    </p>
+  </div>
+</div>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div class="page" id="page-login">
+  <div class="auth-container">
+    <h2>تسجيل الدخول</h2>
+    <p class="subtitle">أهلاً بعودتك</p>
+
+    <div id="loginAlert"></div>
+
+    <div class="form-group">
+      <label>اسم المستخدم</label>
+      <input type="text" id="loginUsername" placeholder="ahmed أو ahmed:visitor" autocomplete="username">
+      <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px;">
+        💡 للزوار: استخدم صيغة <code style="font-family: var(--font-mono);">owner:visitor</code>
+      </p>
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()" style="width: 100%; justify-content: center;">
+      دخول
+    </button>
+
+    <p class="auth-switch">
+      ليس لديك حساب؟ <a onclick="navigateTo('signup')">إنشاء حساب جديد</a>
+    </p>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD (OWNER) ===== -->
+<div class="page" id="page-dashboard">
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">القائمة الرئيسية</div>
+        <div class="sidebar-item active" data-tab="overview" onclick="switchTab('overview')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          نظرة عامة
+        </div>
+        <div class="sidebar-item" data-tab="persona" onclick="switchTab('persona')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          الشخصية
+        </div>
+        <div class="sidebar-item" data-tab="qa" onclick="switchTab('qa')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          الأسئلة والإجابات
+        </div>
+        <div class="sidebar-item" data-tab="suggestions" onclick="switchTab('suggestions')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1M3 12h1M20 12h1M5.6 5.6l.7.7M18.4 5.6l-.7.7M12 7a5 5 0 0 0-3 9h6a5 5 0 0 0-3-9z"/></svg>
+          أسئلة مقترحة ✨
+        </div>
+        <div class="sidebar-item" data-tab="insights" onclick="switchTab('insights')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18 9l-5 5-2-2-4 4"/></svg>
+          تحليل الشخصية
+        </div>
+        <div class="sidebar-item" data-tab="trusted" onclick="switchTab('trusted')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          الأشخاص الموثوقون
+        </div>
+        <div class="sidebar-item" data-tab="visitors" onclick="switchTab('visitors')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          الزوار
+        </div>
+        <div class="sidebar-item" data-tab="consent" onclick="switchTab('consent')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          إقرار الاستخدام
+        </div>
+        <div class="sidebar-item" data-tab="chat" onclick="switchTab('chat')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          تجربة الشات
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="dashboardContent">
+      <!-- يتم ملؤه ديناميكياً -->
+    </main>
+  </div>
+</div>
+
+<!-- ===== VISITOR CHAT PAGE ===== -->
+<div class="page" id="page-visitor-chat">
+  <div class="chat-page">
+    <div class="chat-window">
+      <div class="chat-header">
+        <div class="chat-avatar" id="visitorChatAvatar">ن</div>
+        <div class="chat-info">
+          <h5 id="visitorChatName">نائب المالك</h5>
+          <p>● متاح للرد</p>
+        </div>
+        <div style="margin-right: auto;">
+          <button class="btn btn-ghost" onclick="handleLogout()" style="padding: 8px 16px; font-size: 13px;">خروج</button>
+        </div>
+      </div>
+      <div class="chat-body" id="visitorChatBody">
+        <div class="message from-ai">
+          <div class="msg-avatar">ن</div>
+          <div class="msg-bubble">أهلاً! أنا نائب صاحب الحساب. اسألني عن أي شيء وسأرد بأسلوبه.</div>
+        </div>
+      </div>
+      <div class="chat-input-bar">
+        <input type="text" id="visitorChatInput" placeholder="اكتب سؤالك..." onkeypress="if(event.key==='Enter') sendVisitorMessage()">
+        <button class="send-btn" onclick="sendVisitorMessage()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" transform="scale(-1,1) translate(-24,0)"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent">
+    <!-- يملأ ديناميكياً -->
+  </div>
+</div>
+
+<script>
+// ========================================
+// CONFIGURATION
+// ========================================
+// 🚨 مهم: غيّر ده لرابط Hugging Face Space بتاعك بعد الرفع
+// مثال: https://ahmedelsaidamin-ai-rep.hf.space
+const API_BASE = window.NAEBI_API_BASE || 'https://ahmedelsaidamin-ai-rep.hf.space';
+
+// ========================================
+// STATE
+// ========================================
+let currentUser = null;
+let authToken = localStorage.getItem('naebi_token') || null;
+let chatHistory = '';
+
+// ========================================
+// API CLIENT
+// ========================================
+async function apiCall(endpoint, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
+  };
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.detail || data.message || 'حدث خطأ');
+    }
+    return data;
+  } catch (e) {
+    if (e.message.includes('fetch')) {
+      throw new Error('فشل الاتصال بالسيرفر. تأكد من تشغيل الـ Backend.');
+    }
+    throw e;
+  }
+}
+
+// ========================================
+// NAVIGATION
+// ========================================
+function navigateTo(pageName) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(`page-${pageName}`);
+  if (target) {
+    target.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  updateNavBar();
+}
+
+function updateNavBar() {
+  const navRight = document.getElementById('navRight');
+  if (currentUser) {
+    navRight.innerHTML = `
+      <span style="color: var(--text-secondary); font-size: 14px;">
+        ${currentUser.role === 'owner' ? '👤' : '👋'} ${currentUser.name}
+      </span>
+      <button class="btn btn-ghost" onclick="handleLogout()">خروج</button>
+    `;
+  } else {
+    navRight.innerHTML = `
+      <button class="btn btn-ghost" onclick="navigateTo('login')">دخول</button>
+      <button class="btn btn-primary" onclick="navigateTo('signup')">إنشاء حساب</button>
+    `;
+  }
+}
+
+// ========================================
+// ALERTS
+// ========================================
+function showAlert(containerId, message, type = 'error') {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = `<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 6000);
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// ========================================
+// AUTH
+// ========================================
+async function handleSignup() {
+  const displayName = document.getElementById('signupDisplayName').value.trim();
+  const username = document.getElementById('signupUsername').value.trim().toLowerCase();
+  const password = document.getElementById('signupPassword').value;
+  const btn = document.getElementById('signupBtn');
+
+  if (!username || !password || !displayName) {
+    return showAlert('signupAlert', 'كل الحقول مطلوبة');
+  }
+  if (password.length < 6) {
+    return showAlert('signupAlert', 'كلمة المرور 6 أحرف على الأقل');
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading"></span> جاري الإنشاء...';
+
+  try {
+    await apiCall('/api/auth/signup', {
+      method: 'POST',
+      body: { username, password, display_name: displayName }
+    });
+    showAlert('signupAlert', '✅ تم إنشاء الحساب! جاري الدخول...', 'success');
+    setTimeout(() => doLogin(username, password), 1000);
+  } catch (e) {
+    showAlert('signupAlert', e.message);
+    btn.disabled = false;
+    btn.innerHTML = 'إنشاء الحساب';
+  }
+}
+
+async function handleLogin() {
+  const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+  await doLogin(username, password);
+}
+
+async function doLogin(username, password) {
+  const btn = document.getElementById('loginBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading"></span> جاري الدخول...';
+  }
+
+  try {
+    const data = await apiCall('/api/auth/login', {
+      method: 'POST',
+      body: { username, password }
+    });
+    authToken = data.token;
+    localStorage.setItem('naebi_token', authToken);
+    await loadCurrentUser();
+  } catch (e) {
+    showAlert('loginAlert', e.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = 'دخول';
+    }
+  }
+}
+
+async function loadCurrentUser() {
+  if (!authToken) return;
+  try {
+    const data = await apiCall('/api/auth/me');
+    currentUser = data;
+    if (data.role === 'owner') {
+      navigateTo('dashboard');
+      switchTab('overview');
+    } else {
+      document.getElementById('visitorChatName').textContent = `نائب ${data.name}`;
+      navigateTo('visitor-chat');
+    }
+  } catch (e) {
+    authToken = null;
+    localStorage.removeItem('naebi_token');
+    currentUser = null;
+    navigateTo('landing');
+  }
+}
+
+async function handleLogout() {
+  try {
+    await apiCall('/api/auth/logout', { method: 'POST' });
+  } catch (e) {}
+  authToken = null;
+  currentUser = null;
+  localStorage.removeItem('naebi_token');
+  navigateTo('landing');
+}
+
+// ========================================
+// DASHBOARD TABS
+// ========================================
+function switchTab(tab) {
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  const content = document.getElementById('dashboardContent');
+
+  switch(tab) {
+    case 'overview': renderOverview(content); break;
+    case 'persona': renderPersona(content); break;
+    case 'qa': renderQA(content); break;
+    case 'suggestions': renderSuggestions(content); break;
+    case 'insights': renderInsights(content); break;
+    case 'trusted': renderTrusted(content); break;
+    case 'visitors': renderVisitors(content); break;
+    case 'consent': renderConsent(content); break;
+    case 'chat': renderOwnerChat(content); break;
+  }
+}
+
+async function renderOverview(container) {
+  container.innerHTML = `<div style="text-align: center; padding: 40px;"><span class="loading"></span></div>`;
+
+  try {
+    const me = await apiCall('/api/auth/me');
+    const stats = me.stats;
+    const progressQA = Math.min(100, (stats.qa_count / stats.qa_required) * 100);
+    const progressMandatory = Math.min(100, (stats.mandatory_done / stats.mandatory_required) * 100);
+
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>أهلاً، ${me.display_name}</h2>
+        <span class="status-badge ${stats.is_ready ? 'active' : 'inactive'}">
+          ${stats.is_ready ? '● نائبك مفعّل' : '● غير مفعّل بعد'}
+        </span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">الأسئلة والإجابات</div>
+          <div class="stat-value">${stats.qa_count}/${stats.qa_required}</div>
+          <div class="stat-progress"><div class="stat-progress-bar" style="width: ${progressQA}%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">الأشخاص الموثوقون</div>
+          <div class="stat-value">${stats.trusted_count}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">الزوار النشطون</div>
+          <div class="stat-value">${stats.visitor_count}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">إقرار الاستخدام</div>
+          <div class="stat-value">${stats.mandatory_done}/${stats.mandatory_required}</div>
+          <div class="stat-progress"><div class="stat-progress-bar" style="width: ${progressMandatory}%"></div></div>
+        </div>
+      </div>
+
+      ${stats.missing.length > 0 ? `
+        <div class="alert alert-warning">
+          <strong>المطلوب لتفعيل نائبك:</strong>
+          <ul style="margin: 8px 0 0 20px;">
+            ${stats.missing.map(m => `<li>${escapeHtml(m)}</li>`).join('')}
+          </ul>
+        </div>
+      ` : `
+        <div class="alert alert-success">
+          🎉 نائبك مفعّل وجاهز! الزوار يقدروا يدخلوا بصيغة: <code style="background:var(--bg-card); padding: 2px 6px; border-radius:4px;">${me.username}:visitor_name</code>
+        </div>
+      `}
+
+      <div style="margin-top: 32px;">
+        <h3 style="font-family: var(--font-display); font-size: 24px; margin-bottom: 16px;">دليل سريع</h3>
+        <div class="features-grid">
+          <div class="feature-card">
+            <h3 style="font-size: 20px;">1. وافق على إقرار الاستخدام</h3>
+            <p>خطوة إلزامية قبل التفعيل.</p>
+          </div>
+          <div class="feature-card">
+            <h3 style="font-size: 20px;">2. عرّف شخصية نائبك</h3>
+            <p>اكتب أسلوبك وحدودك.</p>
+          </div>
+          <div class="feature-card">
+            <h3 style="font-size: 20px;">3. أضف ${stats.qa_required} سؤال وإجابة</h3>
+            <p>دلوقتي عندك ${stats.qa_count}.</p>
+          </div>
+          <div class="feature-card">
+            <h3 style="font-size: 20px;">4. أضف شخص موثوق</h3>
+            <p>للمراجعة والطوارئ.</p>
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function renderPersona(container) {
+  container.innerHTML = `<div style="text-align: center; padding: 40px;"><span class="loading"></span></div>`;
+  try {
+    const data = await apiCall('/api/persona');
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>شخصية نائبك</h2>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 24px;">
+        حدد كيف يفكر نائبك وكيف يتحدث. كلما كان الوصف أدق، كانت الإجابات أقرب لأسلوبك.
+      </p>
+
+      <div id="personaAlert"></div>
+
+      <div class="form-group">
+        <label>وصف الشخصية والأسلوب</label>
+        <textarea id="personaText" rows="8" placeholder="مثال: أنا أحمد، مهندس برمجيات. أتحدث بأسلوب ودود ومباشر. لا أعطي نصائح طبية أو قانونية...">${escapeHtml(data.persona || '')}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label>قواعد الأسلوب (اختياري)</label>
+        <textarea id="styleText" rows="4" placeholder="استخدم لغة بسيطة. لا تستخدم الإيموجي. كن مختصراً.">${escapeHtml(data.style_rules || '')}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label>الموضوعات الممنوعة (اختياري)</label>
+        <textarea id="forbiddenText" rows="4" placeholder="لا تتحدث في السياسة. لا تعطي قرارات مالية نهائية.">${escapeHtml(data.forbidden_topics || '')}</textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="savePersona()">حفظ التعديلات</button>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function savePersona() {
+  try {
+    await apiCall('/api/persona', {
+      method: 'PUT',
+      body: {
+        persona: document.getElementById('personaText').value,
+        style_rules: document.getElementById('styleText').value,
+        forbidden_topics: document.getElementById('forbiddenText').value
+      }
+    });
+    showAlert('personaAlert', '✅ تم الحفظ', 'success');
+  } catch (e) {
+    showAlert('personaAlert', e.message);
+  }
+}
+
+async function renderQA(container) {
+  container.innerHTML = `<div style="text-align: center; padding: 40px;"><span class="loading"></span></div>`;
+  try {
+    const data = await apiCall('/api/qa');
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>الأسئلة والإجابات</h2>
+        <div>
+          <span class="status-badge ${data.count >= data.required ? 'active' : 'inactive'}">
+            ${data.count}/${data.required} سؤال
+          </span>
+          <button class="btn btn-ghost" onclick="switchTab('suggestions')" style="margin-right:8px;">✨ أسئلة مقترحة</button>
+          <button class="btn btn-primary" onclick="openQAModal()" style="margin-right: 8px;">+ إضافة سؤال</button>
+        </div>
+      </div>
+
+      <div id="qaAlert"></div>
+
+      <div class="item-list">
+        ${data.items.length === 0 ? `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <p>لا توجد أسئلة بعد</p>
+            <p style="margin-top: 8px;">ابدأ بإضافة 50 سؤال وإجابة على الأقل لتفعيل نائبك</p>
+          </div>
+        ` : data.items.map(item => `
+          <div class="list-item">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(item.question)}</div>
+              <div class="list-item-meta">${escapeHtml(item.answer.substring(0, 150))}${item.answer.length > 150 ? '...' : ''}</div>
+              ${item.tags ? `<div style="margin-top: 8px; font-size: 12px; color: var(--accent-1);">🏷️ ${escapeHtml(item.tags)}</div>` : ''}
+            </div>
+            <div class="list-item-actions">
+              <button class="icon-btn" onclick="editQA(${item.id})" title="تعديل">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+              </button>
+              <button class="icon-btn danger" onclick="deleteQA(${item.id})" title="حذف">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function openQAModal(qaId = null, question = '', answer = '', tags = '') {
+  document.getElementById('modalContent').innerHTML = `
+    <h3>${qaId ? 'تعديل سؤال' : 'إضافة سؤال جديد'}</h3>
+    <div id="modalAlert"></div>
+    <div class="form-group">
+      <label>السؤال</label>
+      <input type="text" id="qaQuestion" value="${escapeHtml(question)}" placeholder="ما هو رأيك في...">
+    </div>
+    <div class="form-group">
+      <label>الإجابة</label>
+      <textarea id="qaAnswer" rows="6" placeholder="اكتب الإجابة بأسلوبك...">${escapeHtml(answer)}</textarea>
+    </div>
+    <div class="form-group">
+      <label>وسوم (اختياري)</label>
+      <input type="text" id="qaTags" value="${escapeHtml(tags)}" placeholder="عمل, شخصي, تقني">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveQA(${qaId || 'null'})">${qaId ? 'حفظ' : 'إضافة'}</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+async function saveQA(qaId) {
+  const question = document.getElementById('qaQuestion').value.trim();
+  const answer = document.getElementById('qaAnswer').value.trim();
+  const tags = document.getElementById('qaTags').value.trim();
+
+  if (!question || !answer) {
+    return showAlert('modalAlert', 'السؤال والإجابة مطلوبان');
+  }
+
+  try {
+    if (qaId) {
+      await apiCall(`/api/qa/${qaId}`, { method: 'PUT', body: { question, answer, tags } });
+    } else {
+      await apiCall('/api/qa', { method: 'POST', body: { question, answer, tags } });
+    }
+    closeModal();
+    renderQA(document.getElementById('dashboardContent'));
+  } catch (e) {
+    showAlert('modalAlert', e.message);
+  }
+}
+
+async function editQA(qaId) {
+  const data = await apiCall('/api/qa');
+  const item = data.items.find(i => i.id === qaId);
+  if (item) openQAModal(item.id, item.question, item.answer, item.tags);
+}
+
+async function deleteQA(qaId) {
+  if (!confirm('هل أنت متأكد من حذف السؤال؟')) return;
+  try {
+    await apiCall(`/api/qa/${qaId}`, { method: 'DELETE' });
+    renderQA(document.getElementById('dashboardContent'));
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function renderSuggestions(container) {
+  container.innerHTML = `<div style="text-align:center;padding:40px;"><span class="loading"></span></div>`;
+  try {
+    const data = await apiCall('/api/suggestions');
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>أسئلة مقترحة ✨</h2>
+        <button class="btn btn-primary" onclick="generateSuggestions()" id="genBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1M3 12h1M20 12h1M5.6 5.6l.7.7M18.4 5.6l-.7.7M12 7a5 5 0 0 0-3 9h6a5 5 0 0 0-3-9z"/></svg>
+          ولّد أسئلة جديدة
+        </button>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 24px;">
+        نائبك حلّل شخصيتك واقترح الأسئلة دي عشان يعرفك أكتر. كل ما تجاوب أكتر، كل ما يقترح أسئلة أعمق وأدق عنك.
+      </p>
+
+      <div id="suggestionsAlert"></div>
+
+      <div class="item-list" id="suggestionsList">
+        ${data.items.length === 0 ? `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 7a5 5 0 0 0-3 9h6a5 5 0 0 0-3-9z"/></svg>
+            <p>مفيش أسئلة مقترحة دلوقتي</p>
+            <p style="margin-top: 8px;">اضغط "ولّد أسئلة جديدة" وخلي نائبك يقترح عليك</p>
+          </div>
+        ` : data.items.map(item => `
+          <div class="list-item" id="suggestion-${item.id}">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(item.question)}</div>
+              ${item.category ? `<div style="margin-top:6px;font-size:12px;color:var(--accent-1);">📁 ${escapeHtml(item.category)}</div>` : ''}
+            </div>
+            <div class="list-item-actions">
+              <button class="icon-btn" onclick="answerSuggestion(${item.id}, '${escapeHtml(item.question).replace(/'/g, "\\'")}')" title="جاوب">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+              </button>
+              <button class="icon-btn danger" onclick="dismissSuggestion(${item.id})" title="تجاهل">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function generateSuggestions() {
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading"></span> نائبك بيفكر...';
+  try {
+    await apiCall('/api/suggestions/generate', { method: 'POST' });
+    renderSuggestions(document.getElementById('dashboardContent'));
+  } catch (e) {
+    showAlert('suggestionsAlert', e.message);
+    btn.disabled = false;
+    btn.innerHTML = 'ولّد أسئلة جديدة';
+  }
+}
+
+function answerSuggestion(id, question) {
+  document.getElementById('modalContent').innerHTML = `
+    <h3>جاوب على السؤال</h3>
+    <div id="modalAlert"></div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:6px;">السؤال:</div>
+      <div style="font-weight:700;">${escapeHtml(question)}</div>
+    </div>
+    <div class="form-group">
+      <label>إجابتك (بأسلوبك الطبيعي)</label>
+      <textarea id="suggestionAnswer" rows="6" placeholder="اكتب إجابتك هنا..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSuggestionAnswer(${id})">حفظ كسؤال معتمد</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+async function saveSuggestionAnswer(id) {
+  const answer = document.getElementById('suggestionAnswer').value.trim();
+  if (!answer) return showAlert('modalAlert', 'اكتب الإجابة أولاً');
+  try {
+    await apiCall(`/api/suggestions/${id}/answer`, { method: 'POST', body: { suggestion_id: id, answer } });
+    closeModal();
+    renderSuggestions(document.getElementById('dashboardContent'));
+  } catch (e) {
+    showAlert('modalAlert', e.message);
+  }
+}
+
+async function dismissSuggestion(id) {
+  try {
+    await apiCall(`/api/suggestions/${id}`, { method: 'DELETE' });
+    document.getElementById(`suggestion-${id}`)?.remove();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function renderInsights(container) {
+  container.innerHTML = `<div style="text-align:center;padding:40px;"><span class="loading"></span> بنحلّل شخصية نائبك...</div>`;
+  try {
+    const data = await apiCall('/api/insights');
+    const ai = data.ai_insights;
+    const score = ai?.completion_score || Math.min(95, Math.round((data.qa_count / 50) * 100));
+
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>تحليل شخصية نائبك</h2>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">درجة اكتمال الشخصية</div>
+          <div class="stat-value">${score}%</div>
+          <div class="stat-progress"><div class="stat-progress-bar" style="width:${score}%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">عدد الأسئلة</div>
+          <div class="stat-value">${data.qa_count}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">متوسط طول الإجابة</div>
+          <div class="stat-value">${data.avg_answer_length}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">حرف</div>
+        </div>
+      </div>
+
+      ${ai ? `
+        <div style="display:grid;gap:16px;margin-top:24px;">
+          <div class="feature-card" style="border-color:rgba(74,222,128,0.3);">
+            <h3 style="font-size:20px;color:var(--success);">💪 نقاط القوة</h3>
+            <p style="color:var(--text-primary);">${escapeHtml(ai.strengths || '')}</p>
+          </div>
+          <div class="feature-card" style="border-color:rgba(251,191,36,0.3);">
+            <h3 style="font-size:20px;color:var(--warning);">🔍 نقاط تحتاج تطوير</h3>
+            <p style="color:var(--text-primary);">${escapeHtml(ai.weaknesses || '')}</p>
+          </div>
+          <div class="feature-card" style="border-color:rgba(167,139,250,0.3);">
+            <h3 style="font-size:20px;color:var(--accent-1);">💡 توصية</h3>
+            <p style="color:var(--text-primary);">${escapeHtml(ai.recommendation || '')}</p>
+          </div>
+        </div>
+      ` : `
+        <div class="alert alert-warning" style="margin-top:24px;">
+          ${data.qa_count < 5 ? 'أضف 5 أسئلة على الأقل عشان تشوف التحليل الذكي.' : 'التحليل الذكي يحتاج مفتاح Gemini مفعّل على السيرفر.'}
+        </div>
+      `}
+
+      ${Object.keys(data.categories).length > 0 ? `
+        <div style="margin-top:32px;">
+          <h3 style="font-family:var(--font-display);font-size:24px;margin-bottom:16px;">توزيع الفئات</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            ${Object.entries(data.categories).map(([cat, count]) => `
+              <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:100px;padding:8px 16px;font-size:14px;">
+                ${escapeHtml(cat)} <span style="color:var(--accent-1);font-weight:700;">${count}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function renderTrusted(container) {
+  try {
+    const data = await apiCall('/api/trusted');
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>الأشخاص الموثوقون</h2>
+        <button class="btn btn-primary" onclick="openTrustedModal()">+ إضافة شخص</button>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 24px;">
+        أضف شخصاً موثوقاً يمكن للزوار التواصل معه عند الحاجة. شخص واحد على الأقل مطلوب للتفعيل.
+      </p>
+      <div class="item-list">
+        ${data.items.length === 0 ? `
+          <div class="empty-state">
+            <p>لم تضف أحداً بعد</p>
+          </div>
+        ` : data.items.map(item => `
+          <div class="list-item">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(item.name)}</div>
+              <div class="list-item-meta">
+                ${escapeHtml(item.role)} · ${escapeHtml(item.contact)}
+              </div>
+            </div>
+            <div class="list-item-actions">
+              <button class="icon-btn danger" onclick="deleteTrusted(${item.id})">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function openTrustedModal() {
+  document.getElementById('modalContent').innerHTML = `
+    <h3>إضافة شخص موثوق</h3>
+    <div id="modalAlert"></div>
+    <div class="form-group">
+      <label>الاسم</label>
+      <input type="text" id="trustedName" placeholder="محمد أحمد">
+    </div>
+    <div class="form-group">
+      <label>العلاقة / الدور</label>
+      <input type="text" id="trustedRole" placeholder="أخ، زوجة، شريك عمل">
+    </div>
+    <div class="form-group">
+      <label>وسيلة التواصل</label>
+      <input type="text" id="trustedContact" placeholder="رقم هاتف أو إيميل">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveTrusted()">إضافة</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+async function saveTrusted() {
+  const name = document.getElementById('trustedName').value.trim();
+  const role = document.getElementById('trustedRole').value.trim();
+  const contact = document.getElementById('trustedContact').value.trim();
+
+  if (!name || !role || !contact) {
+    return showAlert('modalAlert', 'كل الحقول مطلوبة');
+  }
+
+  try {
+    await apiCall('/api/trusted', { method: 'POST', body: { name, role, contact } });
+    closeModal();
+    renderTrusted(document.getElementById('dashboardContent'));
+  } catch (e) {
+    showAlert('modalAlert', e.message);
+  }
+}
+
+async function deleteTrusted(id) {
+  if (!confirm('حذف الشخص؟')) return;
+  await apiCall(`/api/trusted/${id}`, { method: 'DELETE' });
+  renderTrusted(document.getElementById('dashboardContent'));
+}
+
+async function renderVisitors(container) {
+  try {
+    const data = await apiCall('/api/visitors');
+    const me = await apiCall('/api/auth/me');
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>الزوار</h2>
+        <button class="btn btn-primary" onclick="openVisitorModal()">+ إضافة زائر</button>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 24px;">
+        أنشئ حسابات للزوار اللي تسمح لهم بالتحدث مع نائبك. الزائر يدخل بصيغة:
+        <code style="background: var(--bg-card); padding: 2px 8px; border-radius: 6px; font-family: var(--font-mono);">
+          ${me.username}:visitor_name
+        </code>
+      </p>
+      <div class="item-list">
+        ${data.items.length === 0 ? `<div class="empty-state"><p>لم تضف زوار بعد</p></div>` :
+        data.items.map(item => `
+          <div class="list-item">
+            <div class="list-item-content">
+              <div class="list-item-title">${escapeHtml(item.username)}</div>
+              <div class="list-item-meta">
+                يدخل بـ: <code style="background: var(--bg-card); padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono);">${me.username}:${escapeHtml(item.username)}</code>
+              </div>
+            </div>
+            <div class="list-item-actions">
+              <button class="icon-btn danger" onclick="deleteVisitor(${item.id})">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/></svg>
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function openVisitorModal() {
+  document.getElementById('modalContent').innerHTML = `
+    <h3>إضافة زائر</h3>
+    <div id="modalAlert"></div>
+    <div class="form-group">
+      <label>اسم الزائر</label>
+      <input type="text" id="visitorUsername" placeholder="mohamed">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور للزائر</label>
+      <input type="password" id="visitorPassword" placeholder="••••••••">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveVisitor()">إضافة</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+async function saveVisitor() {
+  const username = document.getElementById('visitorUsername').value.trim().toLowerCase();
+  const password = document.getElementById('visitorPassword').value;
+  if (!username || !password) return showAlert('modalAlert', 'كل الحقول مطلوبة');
+  try {
+    await apiCall('/api/visitors', { method: 'POST', body: { username, password } });
+    closeModal();
+    renderVisitors(document.getElementById('dashboardContent'));
+  } catch (e) { showAlert('modalAlert', e.message); }
+}
+
+async function deleteVisitor(id) {
+  if (!confirm('حذف الزائر؟')) return;
+  await apiCall(`/api/visitors/${id}`, { method: 'DELETE' });
+  renderVisitors(document.getElementById('dashboardContent'));
+}
+
+async function renderConsent(container) {
+  try {
+    const data = await apiCall('/api/consent');
+    const me = await apiCall('/api/auth/me');
+    const isDone = me.stats.mandatory_done >= me.stats.mandatory_required;
+
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>إقرار الاستخدام</h2>
+        <span class="status-badge ${isDone ? 'active' : 'inactive'}">
+          ${isDone ? '✓ موافق' : '× لم توافق بعد'}
+        </span>
+      </div>
+
+      <div id="consentAlert"></div>
+
+      <div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 24px; line-height: 2; margin-bottom: 24px;">
+        ${escapeHtml(data.text)}
+      </div>
+
+      ${!isDone ? `
+        <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin-bottom: 20px;">
+          <input type="checkbox" id="consentCheck" style="margin-top: 4px;">
+          <span style="font-size: 14px;">قرأت وأوافق على الإقرار أعلاه</span>
+        </label>
+        <button class="btn btn-primary" onclick="submitConsent()">حفظ الموافقة</button>
+      ` : `
+        <div class="alert alert-success">✅ تم تأكيد موافقتك على إقرار الاستخدام.</div>
+      `}
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function submitConsent() {
+  if (!document.getElementById('consentCheck').checked) {
+    return showAlert('consentAlert', 'يجب تحديد المربع أولاً');
+  }
+  try {
+    await apiCall('/api/consent', { method: 'POST', body: { agreed: true } });
+    renderConsent(document.getElementById('dashboardContent'));
+  } catch (e) {
+    showAlert('consentAlert', e.message);
+  }
+}
+
+function renderOwnerChat(container) {
+  container.innerHTML = `
+    <div class="section-heading">
+      <h2>تجربة نائبك</h2>
+    </div>
+    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+      اختبر كيف يرد نائبك على الأسئلة قبل ما تسمح للزوار.
+    </p>
+    <div class="chat-window" style="height: 500px;">
+      <div class="chat-body" id="ownerChatBody">
+        <div class="message from-ai">
+          <div class="msg-avatar">ن</div>
+          <div class="msg-bubble">أهلاً! جربني بسؤال.</div>
+        </div>
+      </div>
+      <div class="chat-input-bar">
+        <input type="text" id="ownerChatInput" placeholder="اكتب سؤالاً..." onkeypress="if(event.key==='Enter') sendOwnerMessage()">
+        <button class="send-btn" onclick="sendOwnerMessage()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" transform="scale(-1,1) translate(-24,0)"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+async function sendOwnerMessage() {
+  const input = document.getElementById('ownerChatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  await sendMessage(text, 'ownerChatBody');
+}
+
+async function sendVisitorMessage() {
+  const input = document.getElementById('visitorChatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  await sendMessage(text, 'visitorChatBody');
+}
+
+async function sendMessage(text, bodyId) {
+  const body = document.getElementById(bodyId);
+  const userInitial = currentUser?.name?.charAt(0) || 'أ';
+
+  // أضف رسالة المستخدم
+  body.insertAdjacentHTML('beforeend', `
+    <div class="message from-user">
+      <div class="msg-avatar">${escapeHtml(userInitial)}</div>
+      <div class="msg-bubble">${escapeHtml(text)}</div>
+    </div>
+  `);
+
+  // مؤشر الكتابة
+  body.insertAdjacentHTML('beforeend', `
+    <div class="message from-ai" id="typingMsg">
+      <div class="msg-avatar">ن</div>
+      <div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>
+    </div>
+  `);
+  body.scrollTop = body.scrollHeight;
+
+  try {
+    const data = await apiCall('/api/chat', {
+      method: 'POST',
+      body: { question: text, history: chatHistory }
+    });
+
+    chatHistory += `\nسؤال: ${text}\nإجابة: ${data.answer}\n`;
+    if (chatHistory.length > 5000) chatHistory = chatHistory.slice(-3000);
+
+    document.getElementById('typingMsg').remove();
+    body.insertAdjacentHTML('beforeend', `
+      <div class="message from-ai">
+        <div class="msg-avatar">ن</div>
+        <div class="msg-bubble">${escapeHtml(data.answer)}</div>
+      </div>
+    `);
+  } catch (e) {
+    document.getElementById('typingMsg').remove();
+    body.insertAdjacentHTML('beforeend', `
+      <div class="message from-ai">
+        <div class="msg-avatar">ن</div>
+        <div class="msg-bubble" style="color: var(--danger);">⚠️ ${escapeHtml(e.message)}</div>
+      </div>
+    `);
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modalOverlay') closeModal();
+});
+
+// ========================================
+// INIT
+// ========================================
+window.addEventListener('load', async () => {
+  if (authToken) {
+    await loadCurrentUser();
+  } else {
+    updateNavBar();
+  }
+});
+</script>
+
+</body>
+</html>
