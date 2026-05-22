@@ -1280,9 +1280,10 @@ function navigateTo(pageName) {
 function updateNavBar() {
   const navRight = document.getElementById('navRight');
   if (currentUser) {
+    const displayName = currentUser.display_name || currentUser.name || currentUser.username || 'مستخدم';
     navRight.innerHTML = `
       <span style="color: var(--text-secondary); font-size: 14px;">
-        ${currentUser.role === 'owner' ? '👤' : '👋'} ${currentUser.name}
+        ${currentUser.role === 'owner' ? '👤' : '👋'} ${escapeHtml(displayName)}
       </span>
       <button class="btn btn-ghost" onclick="handleLogout()">خروج</button>
     `;
@@ -1378,6 +1379,8 @@ async function loadCurrentUser() {
   try {
     const data = await apiCall('/api/auth/me');
     currentUser = data;
+    // ضمان وجود اسم قابل للعرض
+    currentUser.display_name = data.display_name || data.name || data.username || 'مستخدم';
     if (data.role === 'owner') {
       navigateTo('dashboard');
       switchTab('overview');
@@ -2089,7 +2092,11 @@ async function sendVisitorMessage() {
 
 async function sendMessage(text, bodyId) {
   const body = document.getElementById(bodyId);
-  const userInitial = currentUser?.name?.charAt(0) || 'أ';
+  if (!body) return;
+  const userInitial = currentUser?.display_name?.charAt(0) || currentUser?.name?.charAt(0) || 'أ';
+
+  // امسح أي typing indicator قديم
+  document.querySelectorAll('#typingMsg').forEach(el => el.remove());
 
   // أضف رسالة المستخدم
   body.insertAdjacentHTML('beforeend', `
@@ -2099,9 +2106,10 @@ async function sendMessage(text, bodyId) {
     </div>
   `);
 
-  // مؤشر الكتابة
+  // مؤشر الكتابة بـ ID فريد
+  const typingId = 'typingMsg_' + Date.now();
   body.insertAdjacentHTML('beforeend', `
-    <div class="message from-ai" id="typingMsg">
+    <div class="message from-ai" id="${typingId}">
       <div class="msg-avatar">ن</div>
       <div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>
     </div>
@@ -2117,15 +2125,18 @@ async function sendMessage(text, bodyId) {
     chatHistory += `\nسؤال: ${text}\nإجابة: ${data.answer}\n`;
     if (chatHistory.length > 5000) chatHistory = chatHistory.slice(-3000);
 
-    document.getElementById('typingMsg').remove();
+    document.getElementById(typingId)?.remove();
+
+    // اعرض الرد مع دعم줄 السطور الجديدة
+    const answerHtml = escapeHtml(data.answer).replace(/\n/g, '<br>');
     body.insertAdjacentHTML('beforeend', `
       <div class="message from-ai">
         <div class="msg-avatar">ن</div>
-        <div class="msg-bubble">${escapeHtml(data.answer)}</div>
+        <div class="msg-bubble" style="white-space: pre-wrap;">${answerHtml}</div>
       </div>
     `);
   } catch (e) {
-    document.getElementById('typingMsg').remove();
+    document.getElementById(typingId)?.remove();
     body.insertAdjacentHTML('beforeend', `
       <div class="message from-ai">
         <div class="msg-avatar">ن</div>
