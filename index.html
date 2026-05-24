@@ -2009,6 +2009,11 @@ async function dismissSuggestion(id) {
   }
 }
 
+function retryInsights() {
+  const content = document.getElementById('dashboardContent');
+  if (content) renderInsights(content);
+}
+
 async function renderInsights(container) {
   container.innerHTML = `
     <div style="text-align:center;padding:60px 20px;">
@@ -2057,14 +2062,20 @@ async function renderInsights(container) {
 
     // ===== لو مفيش تحليل =====
     if (!sa) {
+      const errMsg = d.parse_error || '';
+      const isNoKey = !errMsg && d.qa_count >= 5;
       html += `
-        <div class="alert alert-warning">
+        <div class="alert alert-warning" style="margin-bottom:16px;">
           ${d.insufficient_data
             ? `تحتاج على الأقل 5 أسئلة وإجابات للتحليل. عندك حالياً ${d.qa_count}.`
-            : d.parse_error
-              ? `حدث خطأ في التحليل: ${escapeHtml(d.parse_error || '')}. جرّب مرة أخرى.`
+            : errMsg
+              ? `⚠️ ${escapeHtml(errMsg)}`
               : 'تأكد من إضافة GEMINI_API_KEY في إعدادات الـ Space.'}
         </div>
+        <button class="btn btn-primary" onclick="retryInsights()" style="margin-bottom:24px;">
+          🔄 أعد التحليل
+        </button>`;
+      html += `
         <div style="margin-top:24px;">
           <h3 style="font-family:var(--font-display);font-size:22px;margin-bottom:16px;">توزيع الفئات الحالي</h3>
           <div style="display:flex;flex-wrap:wrap;gap:10px;">
