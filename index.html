@@ -954,6 +954,7 @@
   </div>
 
   <div class="nav-right" id="navRight">
+    <a href="/pricing.html" style="color:var(--text-secondary);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">الأسعار</a>
     <!-- يتغير حسب حالة تسجيل الدخول -->
   </div>
 </nav>
@@ -978,8 +979,11 @@
           <path d="M19 12H5M12 19l-7-7 7-7"/>
         </svg>
       </button>
+      <a href="/pricing.html" class="btn btn-ghost" style="text-decoration:none">
+        💎 الأسعار والباقات
+      </a>
       <button class="btn btn-ghost" onclick="navigateTo('login')">
-        لدي حساب بالفعل
+        لدي حساب
       </button>
     </div>
 
@@ -1314,9 +1318,11 @@ function navigateTo(pageName) {
 
 function updateNavBar() {
   const navRight = document.getElementById('navRight');
+  const pricingLink = `<a href="/pricing.html" style="color:var(--text-secondary);text-decoration:none;font-size:14px;font-weight:500;padding:8px 4px;transition:color .2s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">الأسعار</a>`;
   if (currentUser) {
     const displayName = currentUser.display_name || currentUser.name || currentUser.username || 'مستخدم';
     navRight.innerHTML = `
+      ${pricingLink}
       <span style="color: var(--text-secondary); font-size: 14px;">
         ${currentUser.role === 'owner' ? '👤' : '👋'} ${escapeHtml(displayName)}
       </span>
@@ -1324,6 +1330,7 @@ function updateNavBar() {
     `;
   } else {
     navRight.innerHTML = `
+      ${pricingLink}
       <button class="btn btn-ghost" onclick="navigateTo('login')">دخول</button>
       <button class="btn btn-primary" onclick="navigateTo('signup')">إنشاء حساب</button>
     `;
