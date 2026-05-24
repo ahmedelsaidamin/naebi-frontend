@@ -1074,6 +1074,26 @@
     <div id="signupAlert"></div>
 
     <div class="form-group">
+      <label>نوع الحساب</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+        <label id="typePersonalLabel" style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg-elevated);border:2px solid var(--accent-1);border-radius:12px;cursor:pointer;transition:all .2s;">
+          <input type="radio" name="accountType" value="personal" checked style="accent-color:var(--accent-1);">
+          <div>
+            <div style="font-weight:700;font-size:14px;">👤 شخصي</div>
+            <div style="font-size:11px;color:var(--text-tertiary);">للعائلة والأصدقاء</div>
+          </div>
+        </label>
+        <label id="typeBusinessLabel" style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg-elevated);border:2px solid var(--border-subtle);border-radius:12px;cursor:pointer;transition:all .2s;">
+          <input type="radio" name="accountType" value="business" style="accent-color:var(--accent-1);">
+          <div>
+            <div style="font-weight:700;font-size:14px;">💼 عمل</div>
+            <div style="font-size:11px;color:var(--text-tertiary);">للعملاء والمهنيين</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label>الاسم الظاهر</label>
       <input type="text" id="signupDisplayName" placeholder="أحمد محمد">
     </div>
@@ -1139,6 +1159,10 @@
         <div class="sidebar-item" data-tab="persona" onclick="switchTab('persona')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           الشخصية
+        </div>
+        <div class="sidebar-item" data-tab="personality-builder" onclick="switchTab('personality-builder')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          بناء الشخصية 🧬
         </div>
         <div class="sidebar-item" data-tab="qa" onclick="switchTab('qa')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -1318,6 +1342,7 @@ async function handleSignup() {
   const displayName = document.getElementById('signupDisplayName').value.trim();
   const username = document.getElementById('signupUsername').value.trim().toLowerCase();
   const password = document.getElementById('signupPassword').value;
+  const accountType = document.querySelector('input[name="accountType"]:checked')?.value || 'personal';
   const btn = document.getElementById('signupBtn');
 
   if (!username || !password || !displayName) {
@@ -1333,7 +1358,7 @@ async function handleSignup() {
   try {
     await apiCall('/api/auth/signup', {
       method: 'POST',
-      body: { username, password, display_name: displayName }
+      body: { username, password, display_name: displayName, account_type: accountType }
     });
     showAlert('signupAlert', '✅ تم إنشاء الحساب! جاري الدخول...', 'success');
     setTimeout(() => doLogin(username, password), 1000);
@@ -1343,6 +1368,15 @@ async function handleSignup() {
     btn.innerHTML = 'إنشاء الحساب';
   }
 }
+
+// Radio button visual feedback
+document.addEventListener('change', (e) => {
+  if (e.target.name === 'accountType') {
+    document.querySelectorAll('input[name="accountType"]').forEach(r => {
+      r.closest('label').style.borderColor = r.checked ? 'var(--accent-1)' : 'var(--border-subtle)';
+    });
+  }
+});
 
 async function handleLogin() {
   const username = document.getElementById('loginUsername').value.trim().toLowerCase();
@@ -1418,6 +1452,7 @@ function switchTab(tab) {
   switch(tab) {
     case 'overview': renderOverview(content); break;
     case 'persona': renderPersona(content); break;
+    case 'personality-builder': renderPersonalityBuilder(content); break;
     case 'qa': renderQA(content); break;
     case 'suggestions': renderSuggestions(content); break;
     case 'insights': renderInsights(content); break;
@@ -1510,6 +1545,7 @@ async function renderPersona(container) {
   container.innerHTML = `<div style="text-align: center; padding: 40px;"><span class="loading"></span></div>`;
   try {
     const data = await apiCall('/api/persona');
+    const accountType = data.account_type || 'personal';
     container.innerHTML = `
       <div class="section-heading">
         <h2>شخصية نائبك</h2>
@@ -1521,8 +1557,23 @@ async function renderPersona(container) {
       <div id="personaAlert"></div>
 
       <div class="form-group">
+        <label>نوع الحساب</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg-elevated);border:2px solid ${accountType==='personal'?'var(--accent-1)':'var(--border-subtle)'};border-radius:12px;cursor:pointer;">
+            <input type="radio" name="editAccountType" value="personal" ${accountType==='personal'?'checked':''} style="accent-color:var(--accent-1);" onchange="document.querySelectorAll('input[name=editAccountType]').forEach(r=>r.closest('label').style.borderColor=r.checked?'var(--accent-1)':'var(--border-subtle)')">
+            <div><div style="font-weight:700;font-size:14px;">👤 شخصي</div><div style="font-size:11px;color:var(--text-tertiary);">للعائلة والأصدقاء</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg-elevated);border:2px solid ${accountType==='business'?'var(--accent-1)':'var(--border-subtle)'};border-radius:12px;cursor:pointer;">
+            <input type="radio" name="editAccountType" value="business" ${accountType==='business'?'checked':''} style="accent-color:var(--accent-1);" onchange="document.querySelectorAll('input[name=editAccountType]').forEach(r=>r.closest('label').style.borderColor=r.checked?'var(--accent-1)':'var(--border-subtle)')">
+            <div><div style="font-weight:700;font-size:14px;">💼 عمل</div><div style="font-size:11px;color:var(--text-tertiary);">للعملاء والمهنيين</div></div>
+          </label>
+        </div>
+        <p style="font-size:12px;color:var(--text-tertiary);margin-top:8px;">⚠️ تغيير النوع سيؤثر على أسئلة بناء الشخصية والتحليلات</p>
+      </div>
+
+      <div class="form-group">
         <label>وصف الشخصية والأسلوب</label>
-        <textarea id="personaText" rows="8" placeholder="مثال: أنا أحمد، مهندس برمجيات. أتحدث بأسلوب ودود ومباشر. لا أعطي نصائح طبية أو قانونية...">${escapeHtml(data.persona || '')}</textarea>
+        <textarea id="personaText" rows="8" placeholder="مثال: أنا أحمد، مهندس برمجيات. أتحدث بأسلوب ودود ومباشر...">${escapeHtml(data.persona || '')}</textarea>
       </div>
 
       <div class="form-group">
@@ -1535,7 +1586,10 @@ async function renderPersona(container) {
         <textarea id="forbiddenText" rows="4" placeholder="لا تتحدث في السياسة. لا تعطي قرارات مالية نهائية.">${escapeHtml(data.forbidden_topics || '')}</textarea>
       </div>
 
-      <button class="btn btn-primary" onclick="savePersona()">حفظ التعديلات</button>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-primary" onclick="savePersona()">حفظ التعديلات</button>
+        <button class="btn btn-ghost" onclick="switchTab('personality-builder')">🧬 اذهب لبناء الشخصية</button>
+      </div>
     `;
   } catch (e) {
     container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
@@ -1543,13 +1597,15 @@ async function renderPersona(container) {
 }
 
 async function savePersona() {
+  const accountType = document.querySelector('input[name="editAccountType"]:checked')?.value || 'personal';
   try {
     await apiCall('/api/persona', {
       method: 'PUT',
       body: {
         persona: document.getElementById('personaText').value,
         style_rules: document.getElementById('styleText').value,
-        forbidden_topics: document.getElementById('forbiddenText').value
+        forbidden_topics: document.getElementById('forbiddenText').value,
+        account_type: accountType
       }
     });
     showAlert('personaAlert', '✅ تم الحفظ', 'success');
@@ -1666,6 +1722,114 @@ async function deleteQA(qaId) {
     renderQA(document.getElementById('dashboardContent'));
   } catch (e) {
     alert(e.message);
+  }
+}
+
+async function renderPersonalityBuilder(container) {
+  container.innerHTML = `<div style="text-align:center;padding:40px;"><span class="loading"></span> جاري تحميل أسئلة الشخصية...</div>`;
+  try {
+    const data = await apiCall('/api/personality-questions');
+    const questions = data.questions;
+    const accountType = data.account_type;
+    const typeLabel = accountType === 'business' ? '💼 عمل' : '👤 شخصي';
+    const typeDesc = accountType === 'business'
+      ? 'الأسئلة دي هتساعد نائبك يعرف شخصيتك المهنية، أسلوبك مع العملاء، وحدود خدماتك.'
+      : 'الأسئلة دي هتساعد نائبك يعرف شخصيتك الإنسانية، أسلوبك في الكلام، وقيمك.';
+
+    // جمّع الأسئلة حسب الفئة
+    const byCategory = {};
+    questions.forEach(q => {
+      if (!byCategory[q.category]) byCategory[q.category] = [];
+      byCategory[q.category].push(q);
+    });
+
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>بناء الشخصية 🧬</h2>
+        <span class="status-badge active">${typeLabel}</span>
+      </div>
+      <p style="color:var(--text-secondary);margin-bottom:8px;">${typeDesc}</p>
+      <p style="color:var(--text-tertiary);font-size:13px;margin-bottom:28px;">
+        ⚡ اختيارية بالكامل — أجب على اللي تحب بس. كل إجابة بتضاف تلقائياً لقاعدة معرفة نائبك.
+      </p>
+
+      <div id="personalityAlert"></div>
+
+      ${Object.entries(byCategory).map(([cat, qs]) => `
+        <div style="margin-bottom:32px;">
+          <h3 style="font-family:var(--font-display);font-size:20px;color:var(--accent-1);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+            <span style="width:6px;height:6px;background:var(--accent-1);border-radius:50%;display:inline-block;"></span>
+            ${escapeHtml(cat)}
+          </h3>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            ${qs.map(q => `
+              <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;transition:border-color .2s;"
+                   onmouseenter="this.style.borderColor='var(--border-strong)'"
+                   onmouseleave="this.style.borderColor='var(--border-subtle)'">
+                <div style="font-weight:600;margin-bottom:12px;font-size:15px;">${escapeHtml(q.question)}</div>
+                <textarea
+                  id="pq_${q.id}"
+                  rows="3"
+                  placeholder="اكتب إجابتك بأسلوبك الطبيعي... (اتركه فارغاً لو مش عايز تجيب)"
+                  style="width:100%;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:12px;color:var(--text-primary);font-family:var(--font-body);font-size:14px;outline:none;resize:vertical;line-height:1.6;"
+                  onfocus="this.style.borderColor='var(--accent-1)'"
+                  onblur="this.style.borderColor='var(--border-subtle)'"
+                ></textarea>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button class="btn btn-primary" onclick="savePersonalityAnswers()" id="savePersonalityBtn">
+          💾 حفظ الإجابات وإضافتها لنائبك
+        </button>
+        <button class="btn btn-ghost" onclick="switchTab('qa')">
+          شوف الأسئلة المحفوظة
+        </button>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function savePersonalityAnswers() {
+  const btn = document.getElementById('savePersonalityBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading"></span> جاري الحفظ...';
+
+  // اجمع كل الإجابات غير الفارغة
+  const answers = [];
+  document.querySelectorAll('[id^="pq_"]').forEach(textarea => {
+    const val = textarea.value.trim();
+    if (val) {
+      const id = textarea.id.replace('pq_', '');
+      answers.push({ id, answer: val });
+    }
+  });
+
+  if (answers.length === 0) {
+    showAlert('personalityAlert', 'لم تكتب أي إجابات بعد!');
+    btn.disabled = false;
+    btn.innerHTML = '💾 حفظ الإجابات وإضافتها لنائبك';
+    return;
+  }
+
+  try {
+    const result = await apiCall('/api/personality-questions/save', {
+      method: 'POST',
+      body: { answers }
+    });
+    showAlert('personalityAlert', `✅ تم حفظ ${result.saved} إجابة بنجاح وإضافتها لقاعدة معرفة نائبك!`, 'success');
+    btn.innerHTML = `✅ تم حفظ ${result.saved} إجابة`;
+    // مسح الإجابات المحفوظة
+    document.querySelectorAll('[id^="pq_"]').forEach(t => { if(t.value.trim()) t.style.borderColor = 'var(--success)'; });
+  } catch (e) {
+    showAlert('personalityAlert', e.message);
+    btn.disabled = false;
+    btn.innerHTML = '💾 حفظ الإجابات وإضافتها لنائبك';
   }
 }
 
