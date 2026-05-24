@@ -1726,70 +1726,143 @@ async function deleteQA(qaId) {
 }
 
 async function renderPersonalityBuilder(container) {
-  container.innerHTML = `<div style="text-align:center;padding:40px;"><span class="loading"></span> جاري تحميل أسئلة الشخصية...</div>`;
+  container.innerHTML = `
+    <div style="text-align:center;padding:40px;">
+      <span class="loading"></span>
+      <p style="margin-top:12px;color:var(--text-secondary);font-size:14px;">جاري تحميل أسئلة الشخصية...</p>
+    </div>`;
+
   try {
     const data = await apiCall('/api/personality-questions');
     const questions = data.questions;
+    const stats = data.stats;
     const accountType = data.account_type;
-    const typeLabel = accountType === 'business' ? '💼 عمل' : '👤 شخصي';
-    const typeDesc = accountType === 'business'
-      ? 'الأسئلة دي هتساعد نائبك يعرف شخصيتك المهنية، أسلوبك مع العملاء، وحدود خدماتك.'
-      : 'الأسئلة دي هتساعد نائبك يعرف شخصيتك الإنسانية، أسلوبك في الكلام، وقيمك.';
+    const typeLabel = accountType === 'business' ? '💼 مهني' : '👤 شخصي';
 
-    // جمّع الأسئلة حسب الفئة
+    // ===== تجميع حسب الفئة =====
     const byCategory = {};
     questions.forEach(q => {
-      if (!byCategory[q.category]) byCategory[q.category] = [];
-      byCategory[q.category].push(q);
+      const cat = q.category || 'عام';
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(q);
     });
 
-    container.innerHTML = `
+    // ===== تجميع حسب الـ dimension للـ progress =====
+    const dimLabels = {
+      'OCEAN': 'Big Five (OCEAN)',
+      'DISC': 'نمط DISC',
+      'Schwartz': 'قيم Schwartz',
+      'CommStyle': 'أسلوب التواصل',
+      'BusinessScope': 'نطاق العمل'
+    };
+
+    // ===== Header =====
+    let html = `
       <div class="section-heading">
         <h2>بناء الشخصية 🧬</h2>
-        <span class="status-badge active">${typeLabel}</span>
+        <span class="status-badge ${stats.completion_pct >= 100 ? 'active' : 'inactive'}">
+          ${stats.answered}/${stats.total} مكتمل
+        </span>
       </div>
-      <p style="color:var(--text-secondary);margin-bottom:8px;">${typeDesc}</p>
-      <p style="color:var(--text-tertiary);font-size:13px;margin-bottom:28px;">
-        ⚡ اختيارية بالكامل — أجب على اللي تحب بس. كل إجابة بتضاف تلقائياً لقاعدة معرفة نائبك.
-      </p>
 
-      <div id="personalityAlert"></div>
+      <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:16px;padding:24px;margin-bottom:28px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:13px;color:var(--text-secondary);">نوع الحساب: <strong>${typeLabel}</strong></div>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">
+              الأسئلة مصممة لقياس OCEAN + DISC + Schwartz — اختيارية بالكامل
+            </div>
+          </div>
+          <div style="font-family:var(--font-display);font-size:48px;font-style:italic;background:var(--gradient-primary);-webkit-background-clip:text;background-clip:text;color:transparent;">
+            ${stats.completion_pct}%
+          </div>
+        </div>
 
-      ${Object.entries(byCategory).map(([cat, qs]) => `
-        <div style="margin-bottom:32px;">
-          <h3 style="font-family:var(--font-display);font-size:20px;color:var(--accent-1);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-            <span style="width:6px;height:6px;background:var(--accent-1);border-radius:50%;display:inline-block;"></span>
-            ${escapeHtml(cat)}
-          </h3>
-          <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="height:8px;background:var(--border-subtle);border-radius:4px;overflow:hidden;margin-bottom:16px;">
+          <div style="height:100%;width:${stats.completion_pct}%;background:var(--gradient-primary);border-radius:4px;transition:width 1s ease;"></div>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          ${Object.entries(stats.dimensions || {}).map(([dim, info]) => `
+            <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 14px;font-size:12px;">
+              <span style="color:var(--text-secondary);">${dimLabels[dim] || dim}</span>
+              <span style="color:var(--accent-1);font-weight:700;margin-right:6px;">${info.answered}/${info.total}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div id="personalityAlert"></div>`;
+
+    // ===== الأسئلة مقسمة بالفئات =====
+    html += `<div style="display:flex;flex-direction:column;gap:32px;">`;
+
+    Object.entries(byCategory).forEach(([cat, qs]) => {
+      const catAnswered = qs.filter(q => q.is_answered).length;
+      html += `
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="font-family:var(--font-display);font-size:22px;font-weight:400;">${escapeHtml(cat)}</h3>
+            <span style="font-family:var(--font-mono);font-size:11px;color:${catAnswered===qs.length?'var(--success)':'var(--text-tertiary)'};">
+              ${catAnswered}/${qs.length}
+            </span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
             ${qs.map(q => `
-              <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;transition:border-color .2s;"
+              <div style="background:var(--bg-elevated);border:1px solid ${q.is_answered ? 'rgba(74,222,128,0.3)' : 'var(--border-subtle)'};border-radius:14px;padding:20px;transition:all .2s;"
                    onmouseenter="this.style.borderColor='var(--border-strong)'"
-                   onmouseleave="this.style.borderColor='var(--border-subtle)'">
-                <div style="font-weight:600;margin-bottom:12px;font-size:15px;">${escapeHtml(q.question)}</div>
-                <textarea
-                  id="pq_${q.id}"
-                  rows="3"
-                  placeholder="اكتب إجابتك بأسلوبك الطبيعي... (اتركه فارغاً لو مش عايز تجيب)"
-                  style="width:100%;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:12px;color:var(--text-primary);font-family:var(--font-body);font-size:14px;outline:none;resize:vertical;line-height:1.6;"
-                  onfocus="this.style.borderColor='var(--accent-1)'"
-                  onblur="this.style.borderColor='var(--border-subtle)'"
-                ></textarea>
+                   onmouseleave="this.style.borderColor='${q.is_answered ? 'rgba(74,222,128,0.3)' : 'var(--border-subtle)'}'">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
+                  <div style="font-weight:600;font-size:15px;flex:1;">${escapeHtml(q.question)}</div>
+                  ${q.is_answered ? `<span style="color:var(--success);font-size:18px;flex-shrink:0;">✓</span>` : ''}
+                </div>
+                ${q.hint ? `
+                  <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:14px;padding-right:10px;border-right:2px solid var(--border-subtle);">
+                    💡 ${escapeHtml(q.hint)}
+                  </div>` : ''}
+                ${!q.is_answered ? `
+                  <textarea
+                    id="pq_${q.id}"
+                    rows="3"
+                    placeholder="اكتب إجابتك بأسلوبك الطبيعي... (اتركه فارغاً لو مش عايز تجيب)"
+                    style="width:100%;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:10px;padding:12px;color:var(--text-primary);font-family:var(--font-body);font-size:14px;outline:none;resize:vertical;line-height:1.6;"
+                    onfocus="this.style.borderColor='var(--accent-1)'"
+                    onblur="this.style.borderColor='var(--border-subtle)'"
+                  ></textarea>` : `
+                  <div style="font-size:13px;color:var(--text-secondary);background:var(--bg-card);border-radius:8px;padding:12px;border-right:3px solid var(--success);">
+                    ✅ تمت الإجابة — يمكنك تعديلها من تبويب الأسئلة والإجابات
+                  </div>`}
               </div>
             `).join('')}
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+    });
 
-      <div style="display:flex;gap:12px;margin-top:8px;">
-        <button class="btn btn-primary" onclick="savePersonalityAnswers()" id="savePersonalityBtn">
-          💾 حفظ الإجابات وإضافتها لنائبك
-        </button>
-        <button class="btn btn-ghost" onclick="switchTab('qa')">
-          شوف الأسئلة المحفوظة
-        </button>
-      </div>
-    `;
+    html += `</div>`;
+
+    // ===== زر الحفظ =====
+    const remaining = stats.total - stats.answered;
+    if (remaining > 0) {
+      html += `
+        <div style="display:flex;gap:12px;margin-top:32px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="savePersonalityAnswers()" id="savePersonalityBtn">
+            💾 حفظ الإجابات وإضافتها لنائبك
+          </button>
+          <button class="btn btn-ghost" onclick="switchTab('insights')">
+            📊 شوف التحليل العلمي
+          </button>
+        </div>`;
+    } else {
+      html += `
+        <div style="margin-top:32px;text-align:center;">
+          <div class="alert alert-success">🎉 أجبت على كل الأسئلة! نائبك الآن يعرف شخصيتك بعمق.</div>
+          <button class="btn btn-primary" onclick="switchTab('insights')" style="margin-top:16px;">
+            📊 شوف التحليل العلمي الكامل
+          </button>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+
   } catch (e) {
     container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
   }
@@ -1937,70 +2010,243 @@ async function dismissSuggestion(id) {
 }
 
 async function renderInsights(container) {
-  container.innerHTML = `<div style="text-align:center;padding:40px;"><span class="loading"></span> بنحلّل شخصية نائبك...</div>`;
+  container.innerHTML = `
+    <div style="text-align:center;padding:60px 20px;">
+      <span class="loading"></span>
+      <p style="margin-top:16px;color:var(--text-secondary);font-size:14px;">
+        نائبك بيحلل شخصيتك بناءً على نماذج Big Five وDISC وSchwartz...<br>
+        <span style="font-size:12px;color:var(--text-tertiary);">قد يستغرق 15-30 ثانية</span>
+      </p>
+    </div>`;
+
   try {
-    const data = await apiCall('/api/insights');
-    const ai = data.ai_insights;
-    const score = ai?.completion_score || Math.min(95, Math.round((data.qa_count / 50) * 100));
+    const d = await apiCall('/api/insights');
+    const sa = d.scientific_analysis;
+    const dq = d.data_quality;
 
-    container.innerHTML = `
+    // ===== Header =====
+    let html = `
       <div class="section-heading">
-        <h2>تحليل شخصية نائبك</h2>
-      </div>
+        <h2>تحليل الشخصية العلمي</h2>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);">
+          OCEAN · DISC · Schwartz Values
+        </span>
+      </div>`;
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">درجة اكتمال الشخصية</div>
-          <div class="stat-value">${score}%</div>
-          <div class="stat-progress"><div class="stat-progress-bar" style="width:${score}%"></div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">عدد الأسئلة</div>
-          <div class="stat-value">${data.qa_count}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">متوسط طول الإجابة</div>
-          <div class="stat-value">${data.avg_answer_length}</div>
-          <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">حرف</div>
-        </div>
-      </div>
+    // ===== جودة البيانات =====
+    if (dq) {
+      const qColor = dq.overall >= 80 ? 'var(--success)' : dq.overall >= 50 ? 'var(--warning)' : 'var(--danger)';
+      html += `
+        <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;margin-bottom:28px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">جودة بيانات التحليل</div>
+              <div style="font-size:22px;font-weight:700;color:${qColor};">${dq.level} (${dq.overall}%)</div>
+              <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px;">${escapeHtml(dq.recommendation)}</div>
+            </div>
+            <div style="display:flex;gap:16px;">
+              ${[['الكمية', dq.quantity_score], ['الجودة', dq.quality_score], ['التنوع', dq.diversity_score]].map(([l,v]) => `
+                <div style="text-align:center;">
+                  <div style="font-size:20px;font-weight:700;color:var(--accent-1);">${v}%</div>
+                  <div style="font-size:11px;color:var(--text-tertiary);">${l}</div>
+                </div>`).join('')}
+            </div>
+          </div>
+        </div>`;
+    }
 
-      ${ai ? `
-        <div style="display:grid;gap:16px;margin-top:24px;">
-          <div class="feature-card" style="border-color:rgba(74,222,128,0.3);">
-            <h3 style="font-size:20px;color:var(--success);">💪 نقاط القوة</h3>
-            <p style="color:var(--text-primary);">${escapeHtml(ai.strengths || '')}</p>
-          </div>
-          <div class="feature-card" style="border-color:rgba(251,191,36,0.3);">
-            <h3 style="font-size:20px;color:var(--warning);">🔍 نقاط تحتاج تطوير</h3>
-            <p style="color:var(--text-primary);">${escapeHtml(ai.weaknesses || '')}</p>
-          </div>
-          <div class="feature-card" style="border-color:rgba(167,139,250,0.3);">
-            <h3 style="font-size:20px;color:var(--accent-1);">💡 توصية</h3>
-            <p style="color:var(--text-primary);">${escapeHtml(ai.recommendation || '')}</p>
-          </div>
+    // ===== لو مفيش تحليل =====
+    if (!sa) {
+      html += `
+        <div class="alert alert-warning">
+          ${d.insufficient_data
+            ? `تحتاج على الأقل 5 أسئلة وإجابات للتحليل. عندك حالياً ${d.qa_count}.`
+            : d.parse_error
+              ? `حدث خطأ في التحليل: ${escapeHtml(d.parse_error || '')}. جرّب مرة أخرى.`
+              : 'تأكد من إضافة GEMINI_API_KEY في إعدادات الـ Space.'}
         </div>
-      ` : `
-        <div class="alert alert-warning" style="margin-top:24px;">
-          ${data.qa_count < 5 ? 'أضف 5 أسئلة على الأقل عشان تشوف التحليل الذكي.' : 'التحليل الذكي يحتاج مفتاح Gemini مفعّل على السيرفر.'}
-        </div>
-      `}
-
-      ${Object.keys(data.categories).length > 0 ? `
-        <div style="margin-top:32px;">
-          <h3 style="font-family:var(--font-display);font-size:24px;margin-bottom:16px;">توزيع الفئات</h3>
+        <div style="margin-top:24px;">
+          <h3 style="font-family:var(--font-display);font-size:22px;margin-bottom:16px;">توزيع الفئات الحالي</h3>
           <div style="display:flex;flex-wrap:wrap;gap:10px;">
-            ${Object.entries(data.categories).map(([cat, count]) => `
-              <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:100px;padding:8px 16px;font-size:14px;">
+            ${Object.entries(d.categories||{}).map(([cat,count]) =>
+              `<div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:100px;padding:8px 16px;font-size:14px;">
                 ${escapeHtml(cat)} <span style="color:var(--accent-1);font-weight:700;">${count}</span>
+              </div>`).join('')}
+          </div>
+        </div>`;
+      container.innerHTML = html;
+      return;
+    }
+
+    // ===== OCEAN =====
+    const oceanKeys = ['openness','conscientiousness','extraversion','agreeableness','neuroticism'];
+    const oceanAr = {
+      openness: 'الانفتاح الذهني',
+      conscientiousness: 'المسؤولية والضمير',
+      extraversion: 'الانبساطية',
+      agreeableness: 'التعاون والقبول',
+      neuroticism: 'الاستقرار العاطفي'
+    };
+    const oceanDesc = {
+      openness: ['عملي وواقعي', 'مبدع ومنفتح'],
+      conscientiousness: ['مرن وعفوي', 'منظم وملتزم'],
+      extraversion: ['انطوائي هادئ', 'اجتماعي منفتح'],
+      agreeableness: ['مستقل وحازم', 'متعاون ومتعاطف'],
+      neuroticism: ['مستقر عاطفياً', 'حساس ومتأثر']
+    };
+
+    html += `
+      <div style="margin-bottom:32px;">
+        <h3 style="font-family:var(--font-display);font-size:28px;margin-bottom:6px;">
+          🧠 Big Five — OCEAN
+        </h3>
+        <p style="color:var(--text-tertiary);font-size:13px;margin-bottom:20px;">
+          النموذج الأكثر توثيقاً أكاديمياً — بناءً على محتوى إجاباتك الفعلية
+        </p>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          ${oceanKeys.map(key => {
+            const item = sa.ocean[key] || {};
+            const score = item.score || 0;
+            const interp = item.interpretation || '';
+            const gradient = score >= 70
+              ? 'linear-gradient(90deg, var(--accent-1), var(--accent-2))'
+              : score >= 40
+                ? 'linear-gradient(90deg, var(--accent-2), var(--accent-3))'
+                : 'linear-gradient(90deg, #64748b, var(--accent-2))';
+            return `
+              <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <div>
+                    <span style="font-weight:700;font-size:16px;">${oceanAr[key]}</span>
+                    <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);margin-right:8px;">${key.toUpperCase()}</span>
+                  </div>
+                  <span style="font-family:var(--font-display);font-size:28px;font-style:italic;background:${gradient};-webkit-background-clip:text;background-clip:text;color:transparent;">${score}</span>
+                </div>
+                <div style="position:relative;height:8px;background:var(--border-subtle);border-radius:4px;overflow:hidden;margin-bottom:10px;">
+                  <div style="position:absolute;right:0;top:0;height:100%;width:${score}%;background:${gradient};border-radius:4px;transition:width 1s ease;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-tertiary);margin-bottom:10px;">
+                  <span>${oceanDesc[key][0]}</span>
+                  <span>${oceanDesc[key][1]}</span>
+                </div>
+                ${interp ? `<div style="font-size:13px;color:var(--text-secondary);background:var(--bg-card);border-radius:8px;padding:10px 14px;border-right:3px solid var(--accent-1);">💬 ${escapeHtml(interp)}</div>` : ''}
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+
+    // ===== DISC =====
+    const discColors = {D:'#f87171', I:'#fbbf24', S:'#4ade80', C:'#60a5fa'};
+    const discAr = {
+      D: 'القائد — Dominance',
+      I: 'المؤثر — Influence',
+      S: 'المستقر — Steadiness',
+      C: 'الدقيق — Conscientiousness'
+    };
+    const discDescs = {
+      D: 'مباشر، حازم، موجه للنتائج، يحب التحكم والإنجاز السريع',
+      I: 'متحمس، اجتماعي، مقنع، يحب التفاعل والإلهام',
+      S: 'صبور، موثوق، داعم، يقدّر الاستقرار والعلاقات الثابتة',
+      C: 'دقيق، تحليلي، يحب الجودة والمعلومات الكاملة'
+    };
+    const primary = sa.disc?.primary || 'S';
+    const secondary = sa.disc?.secondary;
+
+    html += `
+      <div style="margin-bottom:32px;">
+        <h3 style="font-family:var(--font-display);font-size:28px;margin-bottom:6px;">🎯 نمط DISC</h3>
+        <p style="color:var(--text-tertiary);font-size:13px;margin-bottom:20px;">نمط التواصل والسلوك الغالب</p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+          ${['D','I','S','C'].map(t => {
+            const isPrimary = t === primary;
+            const isSecondary = t === secondary;
+            const color = discColors[t];
+            return `
+              <div style="background:var(--bg-elevated);border:2px solid ${isPrimary ? color : isSecondary ? color+'66' : 'var(--border-subtle)'};border-radius:14px;padding:18px;text-align:center;transition:all .2s;${isPrimary ? `box-shadow:0 0 20px ${color}44;` : ''}">
+                <div style="font-size:36px;font-weight:900;color:${isPrimary||isSecondary ? color : 'var(--text-tertiary)'};">${t}</div>
+                <div style="font-size:11px;color:${isPrimary||isSecondary ? 'var(--text-primary)' : 'var(--text-tertiary)'};margin-top:4px;">
+                  ${isPrimary ? '🔵 أساسي' : isSecondary ? '⚪ ثانوي' : ''}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+        <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;">
+          <div style="font-size:18px;font-weight:700;margin-bottom:8px;color:${discColors[primary]};">${discAr[primary]}</div>
+          <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">${discDescs[primary]}</div>
+          ${sa.disc?.interpretation ? `<div style="font-size:13px;background:var(--bg-card);border-radius:8px;padding:10px 14px;border-right:3px solid ${discColors[primary]};">💬 ${escapeHtml(sa.disc.interpretation)}</div>` : ''}
+        </div>
+      </div>`;
+
+    // ===== Schwartz Values =====
+    const valueIcons = {
+      'الاستقلالية': '🦅', 'الإثارة والتجديد': '⚡', 'الإنجاز': '🏆',
+      'القوة والنفوذ': '👑', 'الأمان': '🛡️', 'المطابقة والالتزام': '📋',
+      'التقاليد': '🏛️', 'الإحسان': '❤️', 'الشمولية والعدالة': '⚖️', 'اللذة والمتعة': '✨'
+    };
+
+    html += `
+      <div style="margin-bottom:32px;">
+        <h3 style="font-family:var(--font-display);font-size:28px;margin-bottom:6px;">💎 القيم العميقة (Schwartz)</h3>
+        <p style="color:var(--text-tertiary);font-size:13px;margin-bottom:20px;">أهم 3 قيم تحرّك قراراتك وردود أفعالك</p>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          ${(sa.values || []).map((v, i) => `
+            <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;display:flex;gap:16px;align-items:flex-start;">
+              <div style="font-size:32px;flex-shrink:0;">${valueIcons[v.value] || '✦'}</div>
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                  <span style="font-family:var(--font-display);font-size:22px;font-style:italic;background:var(--gradient-primary);-webkit-background-clip:text;background-clip:text;color:transparent;">${i+1}.</span>
+                  <span style="font-weight:700;font-size:16px;">${escapeHtml(v.value || '')}</span>
+                </div>
+                ${v.evidence ? `<div style="font-size:13px;color:var(--text-secondary);background:var(--bg-card);border-radius:8px;padding:10px 14px;border-right:3px solid var(--accent-3);">🔍 شاهد: ${escapeHtml(v.evidence)}</div>` : ''}
               </div>
-            `).join('')}
+            </div>`).join('')}
+        </div>
+      </div>`;
+
+    // ===== الخلاصة =====
+    html += `
+      <div style="background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(96,165,250,.04));border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:28px;margin-bottom:24px;">
+        <h3 style="font-family:var(--font-display);font-size:26px;margin-bottom:20px;">📋 خلاصة التحليل</h3>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div>
+            <div style="font-size:13px;color:var(--success);font-weight:700;margin-bottom:10px;">✅ نقاط القوة</div>
+            ${(sa.strengths||[]).map(s => `<div style="font-size:14px;color:var(--text-primary);margin-bottom:6px;padding-right:12px;border-right:2px solid var(--success);">${escapeHtml(s)}</div>`).join('')}
+          </div>
+          <div>
+            <div style="font-size:13px;color:var(--warning);font-weight:700;margin-bottom:10px;">🌱 مناطق النمو</div>
+            ${(sa.growth_areas||[]).map(g => `<div style="font-size:14px;color:var(--text-primary);margin-bottom:6px;padding-right:12px;border-right:2px solid var(--warning);">${escapeHtml(g)}</div>`).join('')}
           </div>
         </div>
-      ` : ''}
-    `;
+
+        ${sa.representative_style ? `
+          <div style="background:var(--bg-card);border-radius:10px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:12px;color:var(--accent-1);font-weight:700;margin-bottom:8px;">🤖 كيف يجب أن يتحدث نائبك</div>
+            <div style="font-size:14px;color:var(--text-primary);line-height:1.7;">${escapeHtml(sa.representative_style)}</div>
+          </div>` : ''}
+
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--border-subtle);">
+          <span style="font-size:13px;color:var(--text-tertiary);">موثوقية التحليل</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:120px;height:6px;background:var(--border-subtle);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:${sa.confidence_score||0}%;background:var(--gradient-primary);border-radius:3px;"></div>
+            </div>
+            <span style="font-weight:700;color:var(--accent-1);">${sa.confidence_score||0}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:10px;">
+        <p style="font-size:12px;color:var(--text-tertiary);line-height:1.7;">
+          ⚠️ هذا التحليل مبني على نماذج علمية معتمدة (Big Five, DISC, Schwartz) ويستخدم لأغراض تحسين أداء نائبك الذكي فقط.<br>
+          لا يُعدّ بديلاً عن تقييم نفسي متخصص. كلما أضفت المزيد من الإجابات، زادت دقة التحليل.
+        </p>
+      </div>`;
+
+    container.innerHTML = html;
+
   } catch (e) {
-    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+    container.innerHTML = `<div class="alert alert-error">خطأ في تحميل التحليل: ${escapeHtml(e.message)}</div>`;
   }
 }
 
