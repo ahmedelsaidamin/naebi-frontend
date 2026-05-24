@@ -1426,14 +1426,10 @@ async function loadCurrentUser() {
     currentUser = data;
     currentUser.display_name = data.display_name || data.name || data.username || 'مستخدم';
     if (data.role === 'owner') {
-      // أظهر Admin tab لو admin
       if (data.is_admin) {
         const adminTab = document.getElementById('adminTab');
         if (adminTab) adminTab.style.display = 'flex';
       }
-      navigateTo('dashboard');
-      switchTab('overview');
-    } else {
       navigateTo('dashboard');
       switchTab('overview');
     } else {
