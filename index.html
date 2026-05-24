@@ -936,14 +936,21 @@
 
 <!-- ===== NAVIGATION ===== -->
 <nav>
-  <div class="logo" onclick="navigateTo('landing')">
-    <div class="logo-mark">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2L4 6V12C4 17 8 21 12 22C16 21 20 17 20 12V6L12 2Z" stroke="white" stroke-width="1.5" fill="rgba(255,255,255,0.2)"/>
-        <circle cx="12" cy="11" r="3" fill="white"/>
-      </svg>
-    </div>
-    <span>نائبي</span>
+  <div class="logo" onclick="navigateTo('landing')" style="cursor:pointer">
+    <svg width="36" height="36" viewBox="0 0 40 40" fill="none" style="flex-shrink:0">
+      <defs>
+        <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#a78bfa"/>
+          <stop offset="50%" stop-color="#60a5fa"/>
+          <stop offset="100%" stop-color="#f472b6"/>
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" rx="12" fill="url(#logoGrad)"/>
+      <path d="M20 8L10 13V21C10 27 15 31 20 33C25 31 30 27 30 21V13L20 8Z" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1.5"/>
+      <circle cx="20" cy="20" r="4" fill="white"/>
+      <circle cx="20" cy="20" r="2" fill="url(#logoGrad)"/>
+    </svg>
+    <span style="font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:-0.5px">Pro<em style="background:linear-gradient(135deg,#a78bfa,#60a5fa,#f472b6);-webkit-background-clip:text;background-clip:text;color:transparent">Mis</em>Ai</span>
   </div>
 
   <div class="nav-right" id="navRight">
@@ -1192,6 +1199,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
           تجربة الشات
         </div>
+        <div class="sidebar-item" id="adminTab" data-tab="admin" onclick="switchTab('admin')" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          لوحة الإدارة ⚡
+        </div>
       </div>
     </aside>
 
@@ -1413,9 +1424,16 @@ async function loadCurrentUser() {
   try {
     const data = await apiCall('/api/auth/me');
     currentUser = data;
-    // ضمان وجود اسم قابل للعرض
     currentUser.display_name = data.display_name || data.name || data.username || 'مستخدم';
     if (data.role === 'owner') {
+      // أظهر Admin tab لو admin
+      if (data.is_admin) {
+        const adminTab = document.getElementById('adminTab');
+        if (adminTab) adminTab.style.display = 'flex';
+      }
+      navigateTo('dashboard');
+      switchTab('overview');
+    } else {
       navigateTo('dashboard');
       switchTab('overview');
     } else {
@@ -1460,6 +1478,7 @@ function switchTab(tab) {
     case 'visitors': renderVisitors(content); break;
     case 'consent': renderConsent(content); break;
     case 'chat': renderOwnerChat(content); break;
+    case 'admin': renderAdminDashboard(content); break;
   }
 }
 
@@ -1475,10 +1494,25 @@ async function renderOverview(container) {
     container.innerHTML = `
       <div class="section-heading">
         <h2>أهلاً، ${me.display_name}</h2>
-        <span class="status-badge ${stats.is_ready ? 'active' : 'inactive'}">
-          ${stats.is_ready ? '● نائبك مفعّل' : '● غير مفعّل بعد'}
-        </span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:10px;font-family:var(--font-mono);padding:3px 10px;border-radius:6px;background:${me.subscription?.plan==='free'?'rgba(255,255,255,.05)':'rgba(167,139,250,.1)'};color:${me.subscription?.plan==='free'?'var(--text-tertiary)':'var(--accent-1)'};border:1px solid ${me.subscription?.plan==='free'?'var(--border-subtle)':'rgba(167,139,250,.2)'}">
+            ${me.subscription?.plan_label || 'Free'}
+          </span>
+          <span class="status-badge ${stats.is_ready ? 'active' : 'inactive'}">
+            ${stats.is_ready ? '● نائبك مفعّل' : '● غير مفعّل بعد'}
+          </span>
+        </div>
       </div>
+
+      ${me.subscription?.is_expired ? `
+        <div class="alert alert-error" style="margin-bottom:20px">
+          ⚠️ انتهت فترة تجربتك المجانية — تواصل على <strong>01111977000</strong> للاشتراك واستمرار الخدمة.
+          <a href="/pricing.html" style="color:var(--danger);margin-right:8px">شوف الباقات</a>
+        </div>` : me.subscription?.is_trial ? `
+        <div class="alert alert-warning" style="margin-bottom:20px">
+          ⏳ تجربة مجانية نشطة — تنتهي: ${me.subscription?.trial_ends_at ? new Date(me.subscription.trial_ends_at).toLocaleDateString('ar-EG') : ''}
+          · <a href="tel:01111977000" style="color:var(--warning)">اشترك الآن على 01111977000</a>
+        </div>` : ''}
 
       <div class="stats-grid">
         <div class="stat-card">
@@ -2016,6 +2050,130 @@ function retryInsights() {
   if (content) renderInsights(content);
 }
 
+async function renderAdminDashboard(container) {
+  container.innerHTML = `<div style="text-align:center;padding:40px;"><span class="loading"></span> جاري تحميل لوحة الإدارة...</div>`;
+  try {
+    const [stats, users] = await Promise.all([
+      apiCall('/api/admin/stats'),
+      apiCall('/api/admin/users')
+    ]);
+
+    container.innerHTML = `
+      <div class="section-heading">
+        <h2>⚡ لوحة الإدارة</h2>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary)">ahmed only</span>
+      </div>
+
+      <div class="stats-grid" style="margin-bottom:28px">
+        <div class="stat-card"><div class="stat-label">إجمالي المستخدمين</div><div class="stat-value">${stats.total_users}</div></div>
+        <div class="stat-card"><div class="stat-label">حسابات مفعّلة</div><div class="stat-value">${stats.active_users}</div></div>
+        <div class="stat-card"><div class="stat-label">إجمالي المحادثات</div><div class="stat-value">${stats.total_conversations}</div></div>
+        <div class="stat-card"><div class="stat-label">توزيع الباقات</div>
+          <div style="font-size:13px;margin-top:8px">
+            ${Object.entries(stats.plans_breakdown||{}).map(([p,c])=>`<span style="color:var(--accent-1)">${p}:</span> ${c} `).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div id="adminAlert"></div>
+
+      <div class="section-heading" style="margin-top:0">
+        <h3 style="font-family:var(--font-display);font-size:24px">المستخدمون</h3>
+      </div>
+
+      <div class="item-list">
+        ${users.users.map(u => {
+          const sub = u.subscription || {};
+          const expired = sub.is_expired;
+          const trialEnd = sub.trial_ends_at ? new Date(sub.trial_ends_at).toLocaleDateString('ar-EG') : '';
+          const planLabel = sub.plan === 'free' ? 'Free' : 'Pro';
+          const planColor = sub.plan === 'free' ? 'var(--text-tertiary)' : 'var(--accent-1)';
+          return `
+          <div class="list-item" style="${expired ? 'opacity:0.6;' : ''}">
+            <div class="list-item-content">
+              <div class="list-item-title">
+                ${escapeHtml(u.username)}
+                <span style="font-size:10px;background:${sub.plan==='free'?'rgba(255,255,255,.05)':'rgba(167,139,250,.1)'};color:${planColor};padding:2px 8px;border-radius:6px;margin-right:8px;font-family:var(--font-mono)">${planLabel}</span>
+                ${expired ? '<span style="font-size:10px;background:rgba(248,113,113,.1);color:var(--danger);padding:2px 8px;border-radius:6px;font-family:var(--font-mono)">منتهي</span>' : ''}
+                ${sub.is_trial && !expired ? '<span style="font-size:10px;background:rgba(251,191,36,.1);color:var(--warning);padding:2px 8px;border-radius:6px;font-family:var(--font-mono)">تجربة</span>' : ''}
+              </div>
+              <div class="list-item-meta">
+                ${escapeHtml(u.display_name)} · ${u.qa_count} سؤال · ${u.visitor_count} زائر
+                ${trialEnd ? ` · ينتهي: ${trialEnd}` : ''}
+                · مسجل: ${new Date(u.created_at).toLocaleDateString('ar-EG')}
+              </div>
+            </div>
+            <div class="list-item-actions">
+              <button class="btn btn-primary" style="padding:8px 14px;font-size:12px" onclick="openActivateModal(${u.id},'${escapeHtml(u.username)}')">
+                تفعيل / ترقية
+              </button>
+              ${!expired ? `<button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="deactivateUser(${u.id})">إيقاف</button>` : ''}
+            </div>
+          </div>`}).join('')}
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function openActivateModal(userId, username) {
+  document.getElementById('modalContent').innerHTML = `
+    <h3>تفعيل / ترقية: ${escapeHtml(username)}</h3>
+    <div id="modalAlert"></div>
+    <div class="form-group">
+      <label>الباقة</label>
+      <select id="activatePlan" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:10px;padding:12px;color:var(--text-primary);font-family:var(--font-body)">
+        <option value="free">مجاني (Free) - 1 زائر</option>
+        <option value="starter" selected>أساسي (Pro) - 3 زوار · 199 جنيه</option>
+        <option value="pro">احترافي (Pro) - 6 زوار · 399 جنيه</option>
+        <option value="business">أعمال (Pro) - 10 زوار · 599 جنيه</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>مدة الاشتراك (أيام) — 0 = لا يوجد انتهاء</label>
+      <input type="number" id="activateDays" value="30" min="0" max="365" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:10px;padding:12px;color:var(--text-primary)">
+    </div>
+    <div class="form-group">
+      <label>ملاحظات (اختياري)</label>
+      <input type="text" id="activateNotes" placeholder="مثل: دفع 199 جنيه نقداً" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:10px;padding:12px;color:var(--text-primary)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="doActivate(${userId})">تفعيل</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+async function doActivate(userId) {
+  const plan = document.getElementById('activatePlan').value;
+  const days = parseInt(document.getElementById('activateDays').value) || 0;
+  const notes = document.getElementById('activateNotes').value;
+  const planMaxVisitors = {free:1, starter:3, pro:6, business:10};
+  try {
+    const result = await apiCall('/api/admin/activate', {
+      method: 'POST',
+      body: { owner_id: userId, plan, max_visitors: planMaxVisitors[plan], extend_days: days, notes }
+    });
+    closeModal();
+    showAlert('adminAlert', `✅ تم تفعيل ${escapeHtml(result.username)} — باقة ${result.plan} — ${result.trial_ends_at}`, 'success');
+    renderAdminDashboard(document.getElementById('dashboardContent'));
+  } catch (e) {
+    showAlert('modalAlert', e.message);
+  }
+}
+
+async function deactivateUser(userId) {
+  if (!confirm('هل تريد إيقاف هذا الحساب؟')) return;
+  try {
+    await apiCall(`/api/admin/deactivate/${userId}`, { method: 'POST' });
+    renderAdminDashboard(document.getElementById('dashboardContent'));
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
 async function renderInsights(container) {
   container.innerHTML = `
     <div style="text-align:center;padding:60px 20px;">
@@ -2363,6 +2521,7 @@ async function renderVisitors(container) {
         <code style="background: var(--bg-card); padding: 2px 8px; border-radius: 6px; font-family: var(--font-mono);">
           ${me.username}:visitor_name
         </code>
+        <br><span style="font-size:12px;color:var(--accent-1)">باقتك: ${me.subscription?.plan_name || 'مجاني'} — حد الزوار: ${me.subscription?.max_visitors || 1}</span>
       </p>
       <div class="item-list">
         ${data.items.length === 0 ? `<div class="empty-state"><p>لم تضف زوار بعد</p></div>` :
