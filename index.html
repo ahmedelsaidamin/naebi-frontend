@@ -1040,7 +1040,7 @@
             <circle cx="9" cy="7" r="4"/>
           </svg>
         </div>
-        <h3>إدارة الزوار</h3>
+        <h3>إدارة المساعدين</h3>
         <p>تحكم في من يستطيع التحدث مع نائبك ومستوى وصوله.</p>
       </div>
 
@@ -1139,7 +1139,7 @@
       <label>اسم المستخدم</label>
       <input type="text" id="loginUsername" placeholder="ahmed أو ahmed:visitor" autocomplete="username">
       <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px;">
-        💡 للزوار: استخدم صيغة <code style="font-family: var(--font-mono);">owner:visitor</code>
+        💡 للمساعدين: استخدم صيغة <code style="font-family: var(--font-mono);">owner:visitor</code>
       </p>
     </div>
     <div class="form-group">
@@ -1193,7 +1193,7 @@
         </div>
         <div class="sidebar-item" data-tab="visitors" onclick="switchTab('visitors')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          الزوار
+          المساعدون
         </div>
         <div class="sidebar-item" data-tab="consent" onclick="switchTab('consent')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -1528,7 +1528,7 @@ async function renderOverview(container) {
           <div class="stat-value">${stats.trusted_count}</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">الزوار النشطون</div>
+          <div class="stat-label">المساعدون النشطون</div>
           <div class="stat-value">${stats.visitor_count}</div>
         </div>
         <div class="stat-card">
@@ -1547,7 +1547,7 @@ async function renderOverview(container) {
         </div>
       ` : `
         <div class="alert alert-success">
-          🎉 نائبك مفعّل وجاهز! الزوار يقدروا يدخلوا بصيغة: <code style="background:var(--bg-card); padding: 2px 6px; border-radius:4px;">${me.username}:visitor_name</code>
+          🎉 نائبك مفعّل وجاهز! المساعدون يقدروا يدخلوا بصيغة: <code style="background:var(--bg-card); padding: 2px 6px; border-radius:4px;">${me.username}:visitor_name</code>
         </div>
       `}
 
@@ -2101,7 +2101,7 @@ async function renderAdminDashboard(container) {
                 ${sub.is_trial && !expired ? '<span style="font-size:10px;background:rgba(251,191,36,.1);color:var(--warning);padding:2px 8px;border-radius:6px;font-family:var(--font-mono)">تجربة</span>' : ''}
               </div>
               <div class="list-item-meta">
-                ${escapeHtml(u.display_name)} · ${u.qa_count} سؤال · ${u.visitor_count} زائر
+                ${escapeHtml(u.display_name)} · ${u.qa_count} سؤال · ${u.visitor_count} مساعد
                 ${trialEnd ? ` · ينتهي: ${trialEnd}` : ''}
                 · مسجل: ${new Date(u.created_at).toLocaleDateString('ar-EG')}
               </div>
@@ -2127,10 +2127,10 @@ function openActivateModal(userId, username) {
     <div class="form-group">
       <label>الباقة</label>
       <select id="activatePlan" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:10px;padding:12px;color:var(--text-primary);font-family:var(--font-body)">
-        <option value="free">مجاني (Free) - 1 زائر</option>
-        <option value="starter" selected>أساسي (Pro) - 3 زوار · 199 جنيه</option>
-        <option value="pro">احترافي (Pro) - 6 زوار · 399 جنيه</option>
-        <option value="business">أعمال (Pro) - 10 زوار · 599 جنيه</option>
+        <option value="free">مجاني (Free) - 1 مساعد</option>
+        <option value="starter" selected>أساسي (Pro) - 3 مساعدين · 199 جنيه</option>
+        <option value="pro">احترافي (Pro) - 6 مساعدين · 399 جنيه</option>
+        <option value="business">أعمال (Pro) - 10 مساعدين · 599 جنيه</option>
       </select>
     </div>
     <div class="form-group">
@@ -2433,7 +2433,7 @@ async function renderTrusted(container) {
         <button class="btn btn-primary" onclick="openTrustedModal()">+ إضافة شخص</button>
       </div>
       <p style="color: var(--text-secondary); margin-bottom: 24px;">
-        أضف شخصاً موثوقاً يمكن للزوار التواصل معه عند الحاجة. شخص واحد على الأقل مطلوب للتفعيل.
+        أضف شخصاً موثوقاً يمكن للمساعدين التواصل معه عند الحاجة. شخص واحد على الأقل مطلوب للتفعيل.
       </p>
       <div class="item-list">
         ${data.items.length === 0 ? `
@@ -2516,18 +2516,18 @@ async function renderVisitors(container) {
     const me = await apiCall('/api/auth/me');
     container.innerHTML = `
       <div class="section-heading">
-        <h2>الزوار</h2>
-        <button class="btn btn-primary" onclick="openVisitorModal()">+ إضافة زائر</button>
+        <h2>المساعدون</h2>
+        <button class="btn btn-primary" onclick="openVisitorModal()">+ إضافة مساعد</button>
       </div>
       <p style="color: var(--text-secondary); margin-bottom: 24px;">
-        أنشئ حسابات للزوار اللي تسمح لهم بالتحدث مع نائبك. الزائر يدخل بصيغة:
+        أنشئ حسابات للمساعدين اللي تسمح لهم بالتحدث مع نائبك. المساعد يدخل بصيغة:
         <code style="background: var(--bg-card); padding: 2px 8px; border-radius: 6px; font-family: var(--font-mono);">
           ${me.username}:visitor_name
         </code>
-        <br><span style="font-size:12px;color:var(--accent-1)">باقتك: ${me.subscription?.plan_name || 'مجاني'} — حد الزوار: ${me.subscription?.max_visitors || 1}</span>
+        <br><span style="font-size:12px;color:var(--accent-1)">باقتك: ${me.subscription?.plan_name || 'مجاني'} — حد المساعدين: ${me.subscription?.max_visitors || 1}</span>
       </p>
       <div class="item-list">
-        ${data.items.length === 0 ? `<div class="empty-state"><p>لم تضف زوار بعد</p></div>` :
+        ${data.items.length === 0 ? `<div class="empty-state"><p>لم تضف مساعدين بعد</p></div>` :
         data.items.map(item => `
           <div class="list-item">
             <div class="list-item-content">
@@ -2552,14 +2552,14 @@ async function renderVisitors(container) {
 
 function openVisitorModal() {
   document.getElementById('modalContent').innerHTML = `
-    <h3>إضافة زائر</h3>
+    <h3>إضافة مساعد</h3>
     <div id="modalAlert"></div>
     <div class="form-group">
-      <label>اسم الزائر</label>
+      <label>اسم المساعد</label>
       <input type="text" id="visitorUsername" placeholder="mohamed">
     </div>
     <div class="form-group">
-      <label>كلمة المرور للزائر</label>
+      <label>كلمة المرور للمساعد</label>
       <input type="password" id="visitorPassword" placeholder="••••••••">
     </div>
     <div class="modal-actions">
@@ -2582,7 +2582,7 @@ async function saveVisitor() {
 }
 
 async function deleteVisitor(id) {
-  if (!confirm('حذف الزائر؟')) return;
+  if (!confirm('حذف المساعد؟')) return;
   await apiCall(`/api/visitors/${id}`, { method: 'DELETE' });
   renderVisitors(document.getElementById('dashboardContent'));
 }
@@ -2640,7 +2640,7 @@ function renderOwnerChat(container) {
       <h2>تجربة نائبك</h2>
     </div>
     <p style="color: var(--text-secondary); margin-bottom: 20px;">
-      اختبر كيف يرد نائبك على الأسئلة قبل ما تسمح للزوار.
+      اختبر كيف يرد نائبك على الأسئلة قبل ما تسمح للمساعدين.
     </p>
     <div class="chat-window" style="height: 500px;">
       <div class="chat-body" id="ownerChatBody">
